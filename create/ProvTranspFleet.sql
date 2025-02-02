@@ -12,6 +12,20 @@ CREATE TABLE FrotaTransportadora (
     CONSTRAINT vehicletype_check CHECK (Veiculo IN (
         'Aviao', 'Helicoptero', 'Carro', 'Onibus', 'Van', 'Navio', 'Lancha', 'Trem', 'Metro'
             )
-        )
+        ),
     CONSTRAINT cnpj_check CHECK (LENGTH(CNPJTransportadora) = 14)
 );
+
+CREATE SEQUENCE seq_frotatransp
+    START WITH 50 INCREMENT BY 1;
+
+INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
+VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Onibus', 25);
+
+INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
+VALUES ('88888888000177', 'Carro', 50);
+
+INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
+VALUES ('99999999000188', 'Aviao', 10);
+
+SELECT * FROM FrotaTransportadora;
