@@ -1,7 +1,7 @@
 -- Cliente(CPF, CPFIndicadoPor*, Nome, Telefone, Email, Data_Registro, Pontos_Fidelidade)
 -- CPFIndicadoPor referencia Cliente(CPF)
 
-DROP TABLE cliente cascade CONSTRAINTS;
+TRUNCATE TABLE cliente cascade CONSTRAINTS;
 DROP SEQUENCE cliente_seq;
 
 CREATE TABLE Cliente (

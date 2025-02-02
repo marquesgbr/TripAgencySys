@@ -1,4 +1,6 @@
 -- Promocao(Codigo, Nome, Desconto)
+TRUNCATE TABLE Promocao;
+DROP SEQUENCE code_promo;
 
 CREATE TABLE Promocao (
     Codigo INTEGER,
@@ -6,6 +8,7 @@ CREATE TABLE Promocao (
     Desconto NUMBER(2) NOT NULL,
     CONSTRAINT promocao_pkey PRIMARY KEY (Codigo)
 );
+
 CREATE SEQUENCE code_promo
 START WITH 1 INCREMENT BY 1;
 
@@ -32,7 +35,7 @@ VALUES (
 
 INSERT INTO Promocao (Codigo, Nome, Desconto) 
 VALUES (
-    4,
+    5,
     'Fim de Ano',
     20
 );

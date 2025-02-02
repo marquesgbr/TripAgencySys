@@ -3,6 +3,8 @@
 -- CodPacote referencia Pacote(Codigo)
 -- CodPromocao referencia Promocao(Codigo)
 
+TRUNCATE TABLE Reserva;
+
 CREATE TABLE Reserva (
     Data_hora_reserva DATE,
     CPFConsumidor CHAR(11),
@@ -32,10 +34,11 @@ INSERT INTO Reserva (
     TO_DATE('20/11/2024 14:01:30', 'DD/MM/YYYY HH24:MI:SS'),
     17894563322,
     11,
-    4,
+    5,
     TO_DATE('23/12/2024', 'DD/MM/YYYY'),
     TO_DATE('02/01/2025', 'DD/MM/YYYY'),
     TO_DATE('20/11/2024', 'DD/MM/YYYY'),
     'Reservado'
 );
+
 SELECT * FROM Reserva;

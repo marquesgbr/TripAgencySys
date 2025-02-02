@@ -1,7 +1,7 @@
 -- Dependente(Nome, CPFResponsavel*, Idade, Parentesco)
 -- CPFResponsavel referencia Cliente(CPF)
 
-DROP TABLE Dependente 
+TRUNCATE TABLE Dependente 
 
 CREATE TABLE Dependente (
     Nome VARCHAR2(50) NOT NULL,

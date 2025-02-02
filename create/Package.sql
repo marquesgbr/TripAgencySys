@@ -1,5 +1,5 @@
 -- Pacote(Codigo, NomePacote, PrecoBase)
-DROP TABLE Pacote;
+TRUNCATE TABLE Pacote;
 
 CREATE TABLE Pacote (
     Codigo INTEGER,
