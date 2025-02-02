@@ -2,8 +2,8 @@
 -- CodAtividade referencia Atividade(Codigo)
 
 CREATE TABLE TipoAtividade (
-    Tipo VARCHAR2(25) NOT NULL,
-    CodAtividade INT NOT NULL,
+    Tipo VARCHAR2(25),
+    CodAtividade INT,
     CONSTRAINT tipoatividade_pkey PRIMARY KEY (Tipo, CodAtividade),
     CONSTRAINT tipoatividade_fkey FOREIGN KEY (CodAtividade0)
         REFERENCES Atividade(Codigo),
@@ -66,6 +66,11 @@ VALUES(
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
 VALUES(
     'Esporte',
+    code_atividade.nextval
+);
+INSERT INTO TipoAtividade (Tipo, CodAtividade) 
+VALUES(
+    'Tour Turistico',
     code_atividade.nextval
 );
 
