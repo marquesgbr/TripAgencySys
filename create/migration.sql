@@ -1,4 +1,9 @@
 -- SQLBook: Code
+
+-- Na primeira execucao, os DROP's nao vao executar corretamente, mas os objetos serao criados. 
+-- Depois de criadas as tabelas, ao executar esse arquivo novamente, ele executa 
+-- os DROP's corretamente e cria as tabelas novamente. 
+
 -- Drop tables with foreign keys first
 DROP TABLE FrotaTransportadora;
 DROP TABLE Possui;
