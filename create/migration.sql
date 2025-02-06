@@ -1,4 +1,3 @@
--- SQLBook: Code
 
 -- Na primeira execucao, os DROP's nao vao executar corretamente, mas os objetos serao criados. 
 -- Depois de criadas as tabelas, ao executar esse arquivo novamente, ele executa 
@@ -29,6 +28,7 @@ DROP SEQUENCE code_pacote;
 DROP SEQUENCE code_atividade;
 DROP SEQUENCE code_promo;
 DROP SEQUENCE seq_codfornecedor;
+
 
 CREATE TABLE Cliente (
     CPF VARCHAR2(11),
