@@ -1,4 +1,32 @@
 -- SQLBook: Code
+-- Drop tables with foreign keys first
+DROP TABLE FrotaTransportadora;
+DROP TABLE Possui;
+DROP TABLE TipoAtividade;
+DROP TABLE FornecedorHospedagem;
+DROP TABLE FornecedorAlimentacao;
+DROP TABLE FornecedorTransporte;
+DROP TABLE FornecedorEvento;
+DROP TABLE ContatoFornecedor;
+DROP TABLE Reserva;
+DROP TABLE Dependente;
+
+-- Drop tables with only primary keys
+DROP TABLE Atividade;
+DROP TABLE Pacote;
+DROP TABLE Promocao;
+DROP TABLE Fornecedor;
+DROP TABLE Cliente;
+
+-- Drop sequences
+DROP SEQUENCE cliente_seq;
+DROP SEQUENCE code_pacote;
+DROP SEQUENCE code_atividade;
+DROP SEQUENCE code_promo;
+DROP SEQUENCE seq_codfornecedor;
+DROP SEQUENCE seq_possui;
+DROP SEQUENCE seq_frotatransp;
+
 CREATE TABLE Cliente (
     CPF VARCHAR2(11),
     CPFIndicadoPor VARCHAR2(11),
@@ -10,10 +38,10 @@ CREATE TABLE Cliente (
     CONSTRAINT cliente_pkey PRIMARY KEY (CPF),
     CONSTRAINT cliente_fkey FOREIGN KEY 
         (CPFIndicadoPor) REFERENCES Cliente(CPF),
-    CONSTRAINT cpf_check CHECK 
+    CONSTRAINT cliente_cpf_check CHECK 
         (LENGTH(CPF) = 11 AND (CPFIndicadoPor = NULL OR LENGTH(CPFIndicadoPor) = 11)),
     CONSTRAINT indicado_diff CHECK (CPF != CPFIndicadoPor),
-    CONSTRAINT Pontos_Fidelidade_check CHECK (Pontos_fidelidade>=0) 
+    CONSTRAINT pontos_fidelidade_check CHECK (Pontos_fidelidade>=0) 
 );
 
 CREATE SEQUENCE cliente_seq
@@ -28,8 +56,8 @@ CREATE TABLE Dependente (
     CONSTRAINT dependente_pkey PRIMARY KEY (Nome, CPFResponsavel),
     CONSTRAINT dependente_fkey FOREIGN KEY (CPFResponsavel) 
         REFERENCES Cliente(CPF),
-    CONSTRAINT idade_check CHECK (0<IDADE AND IDADE<18),
-    CONSTRAINT cpf_check CHECK (LENGTH(CPFResponsavel) = 11)
+    CONSTRAINT dependente_idade_check CHECK (0<IDADE AND IDADE<18),
+    CONSTRAINT dependente_cpf_check CHECK (LENGTH(CPFResponsavel) = 11)
 );
 
 CREATE TABLE Promocao (
@@ -37,19 +65,21 @@ CREATE TABLE Promocao (
     Nome VARCHAR2(40) NOT NULL,
     Desconto NUMBER(2) NOT NULL,
     CONSTRAINT promocao_pkey PRIMARY KEY (Codigo),
-    CONSTRAINT codigo_gtezero CHECK (Codigo >= 0),
+    CONSTRAINT salecode_gtezero CHECK (Codigo >= 0),
     CONSTRAINT desconto_check CHECK (5<Desconto AND Desconto<90)
 );
 
+CREATE SEQUENCE code_promo
+START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE Pacote (
     Codigo INT,
     NomePacote VARCHAR2(40),
     PrecoBase NUMBER(7,2),
     CONSTRAINT pacote_pkey PRIMARY KEY (Codigo),
-    CONSTRAINT codigo_gtzero CHECK (Codigo > 0),
+    CONSTRAINT packcode_gtzero CHECK (Codigo > 0),
     CONSTRAINT preco_check CHECK (PrecoBase >= 100)
-)
+);
 
 CREATE SEQUENCE code_pacote
 START WITH 1 INCREMENT BY 1;
@@ -71,7 +101,7 @@ CREATE TABLE Reserva (
     CONSTRAINT reserva_fkey3 FOREIGN KEY (CodPromocao) 
         REFERENCES Promocao(Codigo),
     CONSTRAINT status_check CHECK (Status IN ('Reservado', 'Cancelado', 'Modificado')),
-    CONSTRAINT data_valid CHECK (Data_Entrada <= Data_Saida)
+    CONSTRAINT data_valid CHECK (Data_Entrada <= Data_Saida),
     CONSTRAINT reserva_check CHECK (LENGTH(CPFConsumidor)=11 AND CodPacote>0 AND CodPromocao>0)
 );
 
@@ -81,7 +111,7 @@ CREATE TABLE Atividade (
     Descricao VARCHAR2(70),
     Duracao DECIMAL(3,0),
     CONSTRAINT atividade_pkey PRIMARY KEY (Codigo),
-    CONSTRAINT codigo_gtezero CHECK (Codigo >= 0),
+    CONSTRAINT activcode_gtezero CHECK (Codigo > 0),
     CONSTRAINT duracao_length CHECK (Duracao > 0)
 );
 
@@ -89,13 +119,13 @@ CREATE TABLE TipoAtividade (
     Tipo VARCHAR2(25),
     CodAtividade INT,
     CONSTRAINT tipoatividade_pkey PRIMARY KEY (Tipo, CodAtividade),
-    CONSTRAINT tipoatividade_fkey FOREIGN KEY (CodAtividade0)
+    CONSTRAINT tipoatividade_fkey FOREIGN KEY (CodAtividade)
         REFERENCES Atividade(Codigo),
     CONSTRAINT CodAtividade_gtezero CHECK (CodAtividade >= 0)
 );
 
 CREATE SEQUENCE code_atividade
-START WITH 0 INCREMENT BY 1;
+START WITH 1 INCREMENT BY 1;
 
 
 CREATE TABLE Fornecedor (
@@ -112,7 +142,7 @@ CREATE TABLE ContatoFornecedor (
     CONSTRAINT contatofornecedor_pkey PRIMARY KEY (CodFornecedor, Telefone, Email),
     CONSTRAINT contatofornecedor_fkey FOREIGN KEY (CodFornecedor)
         REFERENCES Fornecedor(CNPJ),
-    CONSTRAINT cnpj_check CHECK (LENGTH(CodFornecedor) = 14)
+    CONSTRAINT contato_cnpj_check CHECK (LENGTH(CodFornecedor) = 14)
 );
 
 CREATE SEQUENCE seq_codfornecedor
@@ -132,6 +162,9 @@ CREATE TABLE Possui (
     CONSTRAINT possui_check CHECK (CodAtividade>=0 AND CodPacote>0 AND LENGTH(CNPJFornecedor) = 14)
 );
 
+CREATE SEQUENCE seq_possui
+START WITH 1 INCREMENT BY 2;
+
 CREATE TABLE FornecedorHospedagem (
     CNPJ_H VARCHAR2(14),
     Classificacao NUMBER(4,3) NOT NULL,
@@ -139,13 +172,11 @@ CREATE TABLE FornecedorHospedagem (
     CONSTRAINT fornhosp_pkey PRIMARY KEY (CNPJ_H),
     CONSTRAINT fornhosp_fkey FOREIGN KEY (CNPJ_H)
         REFERENCES Fornecedor(CNPJ),
-    CONSTRAINT classificacao_check CHECK (0<=Classificacao AND Classificacao<=5),
+    CONSTRAINT hospedagem_classificacao_check CHECK (0<=Classificacao AND Classificacao<=5),
     CONSTRAINT acomodacao_check CHECK (Acomodacao IN ('Albergue', 'Casa', 'Chale', 'Hotel', 'Pousada')),
-    CONSTRAINT cnpj_check CHECK (LENGTH(CNPJ_H) = 14)
+    CONSTRAINT fornecedor_hospedagem_cnpj_check CHECK (LENGTH(CNPJ_H) = 14)
 );
 
-CREATE SEQUENCE seq_fornhosp
-    START WITH 30 INCREMENT BY 1;
 
 CREATE TABLE FornecedorAlimentacao (
     CNPJ_A VARCHAR2(14),
@@ -154,13 +185,10 @@ CREATE TABLE FornecedorAlimentacao (
     CONSTRAINT fornalim_pkey PRIMARY KEY (CNPJ_A),
     CONSTRAINT fornalim_fkey FOREIGN KEY (CNPJ_A)
         REFERENCES Fornecedor(CNPJ),
-    CONSTRAINT classificacao_check CHECK (0<=Classificacao AND Classificacao<=5),
+    CONSTRAINT alimentacao_classificacao_check CHECK (0<=Classificacao AND Classificacao<=5),
     CONSTRAINT servico_check CHECK (Servico IN ('Buffet', 'Bar', 'Fast Food', 'Restaurante', 'Self-Service')),
-    CONSTRAINT cnpj_check CHECK (LENGTH(CNPJ_A) = 14)
+    CONSTRAINT alimentacao_fornecedor_cnpj_check CHECK (LENGTH(CNPJ_A) = 14)
 );
-
-CREATE SEQUENCE seq_fornalim
-    START WITH 10 INCREMENT BY 1;
 
 
 CREATE TABLE FornecedorTransporte (
@@ -170,11 +198,9 @@ CREATE TABLE FornecedorTransporte (
     CONSTRAINT fornt_fkey FOREIGN KEY (CNPJ_T)
         REFERENCES Fornecedor(CNPJ),
     CONSTRAINT tipotransporte_check CHECK (TipoTransporte IN ('Aereo', 'Ferroviario', 'Maritimo', 'Rodoviario')),
-    CONSTRAINT cnpj_check CHECK (LENGTH(CNPJ_T) = 14)
+    CONSTRAINT transporte_fornecedor_cnpj_check CHECK (LENGTH(CNPJ_T) = 14)
 );
 
-CREATE SEQUENCE seq_fornt
-    START WITH 60000000000000 INCREMENT BY 1;
 
 CREATE TABLE FornecedorEvento (
     CNPJ_E VARCHAR2(14),
@@ -184,11 +210,9 @@ CREATE TABLE FornecedorEvento (
     CONSTRAINT fornevent_fkey FOREIGN KEY (CNPJ_E)
         REFERENCES Fornecedor(CNPJ),
     CONSTRAINT tipo_check CHECK (Tipo IN ('Comemorativo', 'Corporativo', 'Cultural', 'Esportivo', 'Religioso')),
-    CONSTRAINT cnpj_check CHECK (LENGTH(CNPJ_E) = 14)
+    CONSTRAINT evento_fornecedor_cnpj_check CHECK (LENGTH(CNPJ_E) = 14)
 );
 
-CREATE SEQUENCE seq_fornevent
-    START WITH 25 INCREMENT BY 1;
 
 CREATE TABLE FrotaTransportadora (
     CNPJTransportadora VARCHAR2(14),
@@ -201,7 +225,7 @@ CREATE TABLE FrotaTransportadora (
         'Aviao', 'Helicoptero', 'Carro', 'Onibus', 'Van', 'Navio', 'Lancha', 'Trem', 'Metro'
             )
         ),
-    CONSTRAINT cnpj_check CHECK (LENGTH(CNPJTransportadora) = 14)
+    CONSTRAINT transportadora_fornecedor_cnpj_check CHECK (LENGTH(CNPJTransportadora) = 14)
 );
 
 CREATE SEQUENCE seq_frotatransp

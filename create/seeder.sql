@@ -1,23 +1,38 @@
 -- SQLBook: Code
+
 -- Fornecedor
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('22222222000111', 'Buffet Delícias LTDA');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('33333333000122', 'Fast Food Express');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('44444444000133', 'Eventos Especiais SA');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('55555555000144', 'Sports Events LTDA');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('11111111000199', 'Aero Transportes');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('22222222111222', 'Marítima Transportes');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('88888888000177', 'Auto Frota LTDA');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES ('99999999000188', 'Aero Frota SA');
 INSERT INTO Fornecedor (CNPJ, NomeEmpresa) 
 VALUES ('17190555670023', 'CInDivirta');
 INSERT INTO Fornecedor (CNPJ, NomeEmpresa) 
-VALUES (LPAD(prov_seq.nextval, 14, '12'), 'nomedeempresaumpoucomaislongo');
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'nomedeempresaumpoucomaislongo');
 INSERT INTO Fornecedor (CNPJ, NomeEmpresa) 
-VALUES (LPAD(prov_seq.nextval, 14, '404'), 'Tour Sem Erros LTDA');
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Tour Sem Erros LTDA');
 
 -- FornecedorHospedagem
 INSERT INTO FornecedorHospedagem (CNPJ_H, Classificacao, Acomodacao)
-VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 3.9, 'Hotel');
+VALUES (LPAD(seq_codfornecedor.currval, 14, '0'), 3.9, 'Hotel');
 INSERT INTO FornecedorHospedagem (CNPJ_H, Classificacao, Acomodacao)
-VALUES ('66666666000155', 4.7, 'Pousada');
+VALUES (LPAD(seq_codfornecedor.currval - 1, 14, '0'), 4.7, 'Pousada');
 INSERT INTO FornecedorHospedagem (CNPJ_H, Classificacao, Acomodacao)
-VALUES ('77777777000166', 2.5, 'Albergue');
+VALUES ('17190555670023', 2.5, 'Albergue');
 
 -- FornecedorAlimentacao
-INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico)
-VALUES (LPAD(seq_fornalime.NEXTVAL, 14, '67'), 4.5, 'Restaurante');
 INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico)
 VALUES ('22222222000111', 3.8, 'Buffet');
 INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico)
@@ -25,15 +40,11 @@ VALUES ('33333333000122', 5.0, 'Fast Food');
 
 -- FornecedorEvento
 INSERT INTO FornecedorEvento (CNPJ_E, Tipo, CapacidadeMaxima)
-VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Corporativo', 500);
-INSERT INTO FornecedorEvento (CNPJ_E, Tipo, CapacidadeMaxima)
 VALUES ('44444444000133', 'Comemorativo', 250);
 INSERT INTO FornecedorEvento (CNPJ_E, Tipo, CapacidadeMaxima)
 VALUES ('55555555000144', 'Esportivo', 1000);
 
 -- FornecedorTransporte
-INSERT INTO FornecedorTransporte (CNPJ_T, TipoTransporte)
-VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Rodoviario');
 INSERT INTO FornecedorTransporte (CNPJ_T, TipoTransporte)
 VALUES ('11111111000199', 'Aereo');
 INSERT INTO FornecedorTransporte (CNPJ_T, TipoTransporte)
@@ -41,19 +52,15 @@ VALUES ('22222222111222', 'Maritimo');
 
 -- FrotaTransportadora
 INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
-VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Onibus', 25);
+VALUES ('11111111000199', 'Carro', 50);
 INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
-VALUES ('88888888000177', 'Carro', 50);
-INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
-VALUES ('99999999000188', 'Aviao', 10);
+VALUES ('22222222111222', 'Aviao', 10);
 
 -- ContatoFornecedor
 INSERT INTO ContatoFornecedor (CodFornecedor, Telefone, Email)
-VALUES (LPAD(seq_codfornecedor.NEXTVAL, 14, '21'), '11987654321', 'contato@empresa1.com.us');
+VALUES ('11111111000199', '21987654321', 'suporte@empresa88.com.br');
 INSERT INTO ContatoFornecedor (CodFornecedor, Telefone, Email)
-VALUES ('12345678000195', '21987654321', 'suporte@empresa88.com.br');
-INSERT INTO ContatoFornecedor (CodFornecedor, Telefone, Email)
-VALUES ('98765432000187', '31999998888', 'atendimento@empresa2.com');
+VALUES ('22222222111222', '31999998888', 'atendimento@empresa2.com');
 
 -- Cliente
 INSERT INTO Cliente (CPF, CPFIndicadoPor, Nome, Telefone, Email, Data_Registro, Pontos_Fidelidade)
@@ -67,7 +74,7 @@ VALUES (LPAD(cliente_seq.NEXTVAL, 11, '0'), LPAD(cliente_seq.NEXTVAL-2, 11, '0')
 
 -- Dependente
 INSERT INTO Dependente (Nome, CPFResponsavel, Idade, Parentesco)
-VALUES ('Maria Souza', 17894563322, 7.2, 'Filho(a)');
+VALUES ('Maria Souza', '17894563322', 7.2, 'Filho(a)');
 
 -- Atividade
 INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
@@ -78,36 +85,57 @@ INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
 VALUES (code_atividade.nextval, 'Degustaçao de Vinhos', NULL, 1);
 
 -- TipoAtividade
+-- Atividade entries first
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (60, 'City Tour', 'Tour pela cidade', 4);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Festival Gastronômico', 'Degustação de comidas típicas', 3);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (100, 'Cruzeiro Familiar', 'Viagem de navio com atividades para família', 7);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Museu Tour', 'Visita guiada a museus', 2);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Expedição Amazônica', 'Exploração pela floresta', 5);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Tour Europa', 'Viagem internacional', 15);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Escalada', 'Aventura em montanhas', 1);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Campeonato Esportivo', 'Competições esportivas', 2);
+INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
+VALUES (code_atividade.nextval, 'Tour Histórico', 'Visita a pontos históricos', 3);
+
+-- TipoAtividade entries using the corresponding activities
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
 VALUES ('Passeio', 60);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Gastronomia', code_atividade.nextval);
+VALUES ('Gastronomia', code_atividade.currval-7);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
 VALUES ('Viagem', 100);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
 VALUES ('Familia', 100);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Cultural', code_atividade.nextval);
+VALUES ('Cultural', code_atividade.currval-5);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Longo Prazo', 100);
+VALUES ('Longo Prazo', code_atividade.currval-3);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Curto Prazo', code_atividade.nextval);
+VALUES ('Curto Prazo', code_atividade.currval-2);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
 VALUES ('Nacional', 60);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Internacional', code_atividade.nextval);
+VALUES ('Internacional', code_atividade.currval-3);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Aventura', code_atividade.nextval);
+VALUES ('Aventura', code_atividade.currval-2);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Esporte', code_atividade.nextval);
+VALUES ('Esporte', code_atividade.currval-1);
 INSERT INTO TipoAtividade (Tipo, CodAtividade) 
-VALUES ('Tour Turistico', code_atividade.nextval);
+VALUES ('Tour Turistico', code_atividade.currval);
 
 -- Pacote
 INSERT INTO Pacote (Codigo, NomePacote, PrecoBase) 
 VALUES (code_pacote.nextval, 'Pacote de Carnaval', 689.99);
 INSERT INTO Pacote (Codigo, NomePacote, PrecoBase) 
-VALUES (11, 'Resort CInDivirta All-inclusive', 2278.00);
+VALUES (code_pacote.nextval, 'Resort CInDivirta All-inclusive', 2278.00);
 
 -- Promocao
 INSERT INTO Promocao (Codigo, Nome, Desconto) 
@@ -117,21 +145,14 @@ VALUES (code_promo.nextval, 'MegaPromo VERAO', 40);
 INSERT INTO Promocao (Codigo, Nome, Desconto) 
 VALUES (code_promo.nextval, 'Ferias em Familia', 15);
 INSERT INTO Promocao (Codigo, Nome, Desconto) 
-VALUES (5, 'Fim de Ano', 20);
+VALUES (code_promo.nextval, 'Fim de Ano', 20);
 
 -- Reserva
 INSERT INTO Reserva (Data_hora_reserva, CPFConsumidor, CodPacote, CodPromocao, Data_Entrada, Data_Saida, Data_Modificacao, Status) 
-VALUES (TO_DATE('20/11/2024 14:01:30', 'DD/MM/YYYY HH24:MI:SS'), 17894563322, 11, 5, TO_DATE('23/12/2024', 'DD/MM/YYYY'), TO_DATE('02/01/2025', 'DD/MM/YYYY'), TO_DATE('20/11/2024', 'DD/MM/YYYY'), 'Reservado');
+VALUES (TO_DATE('20/11/2024 14:01:30', 'DD/MM/YYYY HH24:MI:SS'), '17894563322', code_pacote.currval - 1, code_promo.currval - 1, TO_DATE('23/12/2024', 'DD/MM/YYYY'), TO_DATE('02/01/2025', 'DD/MM/YYYY'), TO_DATE('20/11/2024', 'DD/MM/YYYY'), 'Reservado');
 
 
 -- Generated
--- Possui
-INSERT INTO Possui VALUES (1, 1, '12345678901234');
-INSERT INTO Possui VALUES (90, 11, '17190555670023');
-INSERT INTO Possui VALUES (2, possui_seq.nextval, '50787852849859');
-INSERT INTO Possui VALUES (4, 11, '45559011626759');
-INSERT INTO Possui VALUES (possui_seq.nextval, 3, '17190555670023');
-
 -- More Fornecedor entries
 INSERT INTO Fornecedor VALUES ('12345678901234', 'Viagens Express');
 INSERT INTO Fornecedor VALUES ('23456789012345', 'Hotel Panorama');
@@ -141,59 +162,111 @@ INSERT INTO Fornecedor VALUES ('56789012345678', 'Buffet Delicia');
 INSERT INTO Fornecedor VALUES ('67890123456789', 'Pousada Serena');
 INSERT INTO Fornecedor VALUES ('78901234567890', 'Turismo Total');
 
+-- Create Fornecedor entries first
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Casa Temporada');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Chalé Montanha');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Hotel Central');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Pousada Vista Mar');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Albergue Jovem');
+
 -- More FornecedorHospedagem entries
 INSERT INTO FornecedorHospedagem VALUES ('23456789012345', 4.2, 'Hotel');
 INSERT INTO FornecedorHospedagem VALUES ('67890123456789', 4.8, 'Pousada');
-INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 3.5, 'Casa');
-INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 4.1, 'Chale');
-INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 3.8, 'Hotel');
-INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 4.5, 'Pousada');
-INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 3.2, 'Albergue');
+INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), 3.5, 'Casa');
+INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), 4.1, 'Chale');
+INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_codfornecedor.currval-2, 14, '0'), 3.8, 'Hotel');
+INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_codfornecedor.currval-1, 14, '0'), 4.5, 'Pousada');
+INSERT INTO FornecedorHospedagem VALUES (LPAD(seq_codfornecedor.currval, 14, '0'), 3.2, 'Albergue');
+
+-- Create Fornecedor entries first
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Restaurante Sabor');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Bar do Chef');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Self Service Express');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Fast n Fresh');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Restaurante Gourmet');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Buffet Premium');
 
 -- More FornecedorAlimentacao entries
 INSERT INTO FornecedorAlimentacao VALUES ('56789012345678', 4.6, 'Buffet');
-INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_fornalim.NEXTVAL, 14, '0'), 4.3, 'Restaurante');
-INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_fornalim.NEXTVAL, 14, '0'), 3.9, 'Bar');
-INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_fornalim.NEXTVAL, 14, '0'), 4.0, 'Self-Service');
-INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_fornalim.NEXTVAL, 14, '0'), 3.7, 'Fast Food');
-INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_fornalim.NEXTVAL, 14, '0'), 4.4, 'Restaurante');
-INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_fornalim.NEXTVAL, 14, '0'), 4.2, 'Buffet');
+INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-5, 14, '0'), 4.3, 'Restaurante');
+INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), 3.9, 'Bar');
+INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), 4.0, 'Self-Service');
+INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-2, 14, '0'), 3.7, 'Fast Food');
+INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-1, 14, '0'), 4.4, 'Restaurante');
+INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval, 14, '0'), 4.2, 'Buffet');
 
--- More FornecedorEvento entries
+-- Create Fornecedor entries first
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Eventos Culturais');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Igreja Eventos');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Corporativo Plus');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Esportes Pro');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Centro Cultural');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Festas n Eventos');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Eventos Religiosos');
+
+-- FornecedorEvento entries using currval
 INSERT INTO FornecedorEvento VALUES ('45678901234567', 'Cultural', 300);
-INSERT INTO FornecedorEvento VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Religioso', 200);
-INSERT INTO FornecedorEvento VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Corporativo', 150);
-INSERT INTO FornecedorEvento VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Esportivo', 800);
-INSERT INTO FornecedorEvento VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Cultural', 250);
-INSERT INTO FornecedorEvento VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Comemorativo', 400);
-INSERT INTO FornecedorEvento VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Religioso', 350);
+INSERT INTO FornecedorEvento VALUES (LPAD(seq_codfornecedor.currval-6, 14, '0'), 'Religioso', 200);
+INSERT INTO FornecedorEvento VALUES (LPAD(seq_codfornecedor.currval-5, 14, '0'), 'Corporativo', 150);
+INSERT INTO FornecedorEvento VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), 'Esportivo', 800);
+INSERT INTO FornecedorEvento VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), 'Cultural', 250);
+INSERT INTO FornecedorEvento VALUES (LPAD(seq_codfornecedor.currval-2, 14, '0'), 'Comemorativo', 400);
+INSERT INTO FornecedorEvento VALUES (LPAD(seq_codfornecedor.currval-1, 14, '0'), 'Religioso', 350);
 
--- More FornecedorTransporte entries
-INSERT INTO FornecedorTransporte VALUES ('34567890123456', 'Rodoviario');
-INSERT INTO FornecedorTransporte VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Ferroviario');
-INSERT INTO FornecedorTransporte VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Maritimo');
-INSERT INTO FornecedorTransporte VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Aereo');
-INSERT INTO FornecedorTransporte VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Rodoviario');
-INSERT INTO FornecedorTransporte VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Maritimo');
-INSERT INTO FornecedorTransporte VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Aereo');
+-- Create Fornecedor entries first
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Transportes Ferroviários');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Navios Express');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Aero Express');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Ônibus Brasil');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Navios Turismo');
+INSERT INTO Fornecedor (CNPJ, NomeEmpresa)
+VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Voos Express');
+
+-- FornecedorTransporte entries using currval
+INSERT INTO FornecedorTransporte VALUES (LPAD(seq_codfornecedor.currval-5, 14, '0'), 'Ferroviario');
+INSERT INTO FornecedorTransporte VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), 'Maritimo');
+INSERT INTO FornecedorTransporte VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), 'Aereo');
+INSERT INTO FornecedorTransporte VALUES (LPAD(seq_codfornecedor.currval-2, 14, '0'), 'Rodoviario');
+INSERT INTO FornecedorTransporte VALUES (LPAD(seq_codfornecedor.currval-1, 14, '0'), 'Maritimo');
+INSERT INTO FornecedorTransporte VALUES (LPAD(seq_codfornecedor.currval, 14, '0'), 'Aereo');
 
 -- More FrotaTransportadora entries
-INSERT INTO FrotaTransportadora VALUES ('34567890123456', 'Van', 15);
-INSERT INTO FrotaTransportadora VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Trem', 5);
-INSERT INTO FrotaTransportadora VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Navio', 3);
-INSERT INTO FrotaTransportadora VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Helicoptero', 2);
-INSERT INTO FrotaTransportadora VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Metro', 8);
-INSERT INTO FrotaTransportadora VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Lancha', 6);
-INSERT INTO FrotaTransportadora VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Van', 12);
+INSERT INTO FrotaTransportadora VALUES (LPAD(seq_codfornecedor.currval-5, 14, '0'), 'Trem', 5);
+INSERT INTO FrotaTransportadora VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), 'Navio', 3);
+INSERT INTO FrotaTransportadora VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), 'Aviao', 2);
+
 
 -- More ContatoFornecedor entries
-INSERT INTO ContatoFornecedor VALUES ('12345678901234', '11999887766', 'contato@viagens.com');
-INSERT INTO ContatoFornecedor VALUES ('23456789012345', '11988776655', 'reservas@panorama.com');
-INSERT INTO ContatoFornecedor VALUES ('34567890123456', '11977665544', 'info@rapidos.com');
-INSERT INTO ContatoFornecedor VALUES ('45678901234567', '11966554433', 'eventos@premium.com');
-INSERT INTO ContatoFornecedor VALUES ('56789012345678', '11955443322', 'buffet@delicia.com');
-INSERT INTO ContatoFornecedor VALUES ('67890123456789', '11944332211', 'pousada@serena.com');
-INSERT INTO ContatoFornecedor VALUES ('78901234567890', '11933221100', 'contato@turismo.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval-6, 14, '0'), '11999887766', 'contato@viagens.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval-5, 14, '0'), '11988776655', 'reservas@panorama.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), '11977665544', 'info@rapidos.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), '11966554433', 'eventos@premium.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval-2, 14, '0'), '11955443322', 'buffet@delicia.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval-1, 14, '0'), '11944332211', 'pousada@serena.com');
+INSERT INTO ContatoFornecedor VALUES (LPAD(seq_codfornecedor.currval, 14, '0'), '11933221100', 'contato@turismo.com');
 
 -- More Cliente entries
 INSERT INTO Cliente VALUES (LPAD(cliente_seq.NEXTVAL, 11, '0'), NULL, 'Pedro Santos', '11955443322', 'pedro@email.com', SYSDATE, 50);
@@ -205,13 +278,13 @@ INSERT INTO Cliente VALUES (LPAD(cliente_seq.NEXTVAL, 11, '0'), NULL, 'Julia San
 INSERT INTO Cliente VALUES (LPAD(cliente_seq.NEXTVAL, 11, '0'), NULL, 'Roberto Silva', '11911223344', 'roberto@email.com', SYSDATE, 35);
 
 -- More Dependente entries
-INSERT INTO Dependente VALUES ('Lucas Santos', '12345678901', 10.5, 'Filho(a)');
-INSERT INTO Dependente VALUES ('Marina Oliveira', '23456789012', 8.3, 'Filho(a)');
-INSERT INTO Dependente VALUES ('Pedro Lima', '34567890123', 12.7, 'Filho(a)');
-INSERT INTO Dependente VALUES ('Sofia Costa', '45678901234', 6.1, 'Filho(a)');
-INSERT INTO Dependente VALUES ('Thiago Mendes', '56789012345', 15.8, 'Filho(a)');
-INSERT INTO Dependente VALUES ('Clara Santos', '67890123456', 4.9, 'Filho(a)');
-INSERT INTO Dependente VALUES ('Gabriel Silva', '78901234567', 9.4, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Lucas Santos', LPAD(cliente_seq.currval-6, 11, '0'), 10.5, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Marina Oliveira', LPAD(cliente_seq.currval-5, 11, '0'), 8.3, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Pedro Lima', LPAD(cliente_seq.currval-4, 11, '0'), 12.7, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Sofia Costa', LPAD(cliente_seq.currval-3, 11, '0'), 6.1, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Thiago Mendes', LPAD(cliente_seq.currval-2, 11, '0'), 15.8, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Clara Santos', LPAD(cliente_seq.currval-1, 11, '0'), 4.9, 'Filho(a)');
+INSERT INTO Dependente VALUES ('Gabriel Silva', LPAD(cliente_seq.currval, 11, '0'), 9.4, 'Filho(a)');
 
 -- More Atividade entries
 INSERT INTO Atividade VALUES (code_atividade.nextval, 'Tour Histórico', 'Visita aos pontos históricos', 4);
@@ -249,20 +322,20 @@ INSERT INTO Promocao VALUES (code_promo.nextval, 'Dia dos Namorados', 10);
 INSERT INTO Promocao VALUES (code_promo.nextval, 'Feriado Prolongado', 25);
 INSERT INTO Promocao VALUES (code_promo.nextval, 'Baixa Temporada', 30);
 
--- More Reserva entries
-INSERT INTO Reserva VALUES (SYSDATE-7, '12345678901', 11, 5, SYSDATE+30, SYSDATE+35, SYSDATE-7, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-6, '23456789012', 12, 6, SYSDATE+40, SYSDATE+45, SYSDATE-6, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-5, '34567890123', 13, 7, SYSDATE+50, SYSDATE+55, SYSDATE-5, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-4, '45678901234', 14, 8, SYSDATE+60, SYSDATE+65, SYSDATE-4, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-3, '56789012345', 15, 9, SYSDATE+70, SYSDATE+75, SYSDATE-3, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-2, '67890123456', 16, 10, SYSDATE+80, SYSDATE+85, SYSDATE-2, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-1, '78901234567', 17, 11, SYSDATE+90, SYSDATE+95, SYSDATE-1, 'Reservado');
+-- Possui
+INSERT INTO Possui VALUES (code_atividade.currval-6, code_pacote.currval-6, LPAD(seq_codfornecedor.currval-6, 14, '0'));
+INSERT INTO Possui VALUES (code_atividade.currval-5, code_pacote.currval-5, LPAD(seq_codfornecedor.currval-5, 14, '0'));
+INSERT INTO Possui VALUES (code_atividade.currval-4, code_pacote.currval-4, LPAD(seq_codfornecedor.currval-4, 14, '0'));
+INSERT INTO Possui VALUES (code_atividade.currval-3, code_pacote.currval-3, LPAD(seq_codfornecedor.currval-3, 14, '0'));
+INSERT INTO Possui VALUES (code_atividade.currval-2, code_pacote.currval-2, LPAD(seq_codfornecedor.currval-2, 14, '0'));
+INSERT INTO Possui VALUES (code_atividade.currval-1, code_pacote.currval-1, LPAD(seq_codfornecedor.currval-1, 14, '0'));
+INSERT INTO Possui VALUES (code_atividade.currval, code_pacote.currval, LPAD(seq_codfornecedor.currval, 14, '0'));
 
--- More Possui entries
-INSERT INTO Possui VALUES (60, 11, '12345678901234');
-INSERT INTO Possui VALUES (61, 12, '23456789012345');
-INSERT INTO Possui VALUES (62, 13, '34567890123456');
-INSERT INTO Possui VALUES (63, 14, '45678901234567');
-INSERT INTO Possui VALUES (64, 15, '56789012345678');
-INSERT INTO Possui VALUES (65, 16, '67890123456789');
-INSERT INTO Possui VALUES (66, 17, '78901234567890');
+-- More Reserva entries
+INSERT INTO Reserva VALUES (SYSDATE-7, '00000000010', code_pacote.currval - 6, code_promo.currval - 6, SYSDATE+30, SYSDATE+35, SYSDATE-7, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-6, '00000000009', code_pacote.currval - 5, code_promo.currval - 5, SYSDATE+40, SYSDATE+45, SYSDATE-6, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-5, '00000000008', code_pacote.currval - 4, code_promo.currval - 4, SYSDATE+50, SYSDATE+55, SYSDATE-5, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-4, '00000000007', code_pacote.currval - 3, code_promo.currval - 3, SYSDATE+60, SYSDATE+65, SYSDATE-4, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-3, '00000000006', code_pacote.currval - 2, code_promo.currval - 2, SYSDATE+70, SYSDATE+75, SYSDATE-3, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-2, '00000000005', code_pacote.currval - 1, code_promo.currval - 1, SYSDATE+80, SYSDATE+85, SYSDATE-2, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-1, '00000000004', code_pacote.currval, code_promo.currval, SYSDATE+90, SYSDATE+95, SYSDATE-1, 'Reservado');
