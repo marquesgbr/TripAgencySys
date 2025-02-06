@@ -29,8 +29,6 @@ DROP SEQUENCE code_pacote;
 DROP SEQUENCE code_atividade;
 DROP SEQUENCE code_promo;
 DROP SEQUENCE seq_codfornecedor;
-DROP SEQUENCE seq_possui;
-DROP SEQUENCE seq_frotatransp;
 
 CREATE TABLE Cliente (
     CPF VARCHAR2(11),
@@ -53,6 +51,7 @@ CREATE SEQUENCE cliente_seq
     START WITH 1
     INCREMENT BY 1;
 
+
 CREATE TABLE Dependente (
     Nome VARCHAR2(50),
     CPFResponsavel VARCHAR2(11),
@@ -64,6 +63,7 @@ CREATE TABLE Dependente (
     CONSTRAINT dependente_idade_check CHECK (0<IDADE AND IDADE<18),
     CONSTRAINT dependente_cpf_check CHECK (LENGTH(CPFResponsavel) = 11)
 );
+
 
 CREATE TABLE Promocao (
     Codigo INT,
@@ -77,6 +77,7 @@ CREATE TABLE Promocao (
 CREATE SEQUENCE code_promo
 START WITH 1 INCREMENT BY 1;
 
+
 CREATE TABLE Pacote (
     Codigo INT,
     NomePacote VARCHAR2(40),
@@ -88,6 +89,7 @@ CREATE TABLE Pacote (
 
 CREATE SEQUENCE code_pacote
 START WITH 1 INCREMENT BY 1;
+
 
 CREATE TABLE Reserva (
     Data_hora_reserva DATE,
@@ -110,6 +112,7 @@ CREATE TABLE Reserva (
     CONSTRAINT reserva_check CHECK (LENGTH(CPFConsumidor)=11 AND CodPacote>0 AND CodPromocao>0)
 );
 
+
 CREATE TABLE Atividade (
     Codigo INT,
     Nome VARCHAR2(40) NOT NULL,
@@ -119,6 +122,7 @@ CREATE TABLE Atividade (
     CONSTRAINT activcode_gtezero CHECK (Codigo > 0),
     CONSTRAINT duracao_length CHECK (Duracao > 0)
 );
+
 
 CREATE TABLE TipoAtividade (
     Tipo VARCHAR2(25),
@@ -140,6 +144,7 @@ CREATE TABLE Fornecedor (
     CONSTRAINT cnpj_check CHECK (LENGTH(CNPJ) = 14)
 );
 
+
 CREATE TABLE ContatoFornecedor (
     CodFornecedor VARCHAR2(14),
     Telefone VARCHAR2(15) NOT NULL,
@@ -152,6 +157,7 @@ CREATE TABLE ContatoFornecedor (
 
 CREATE SEQUENCE seq_codfornecedor
     START WITH 100 INCREMENT BY 1;
+
 
 CREATE TABLE Possui (
     CodAtividade INT,
@@ -167,8 +173,6 @@ CREATE TABLE Possui (
     CONSTRAINT possui_check CHECK (CodAtividade>=0 AND CodPacote>0 AND LENGTH(CNPJFornecedor) = 14)
 );
 
-CREATE SEQUENCE seq_possui
-START WITH 1 INCREMENT BY 2;
 
 CREATE TABLE FornecedorHospedagem (
     CNPJ_H VARCHAR2(14),
@@ -232,6 +236,3 @@ CREATE TABLE FrotaTransportadora (
         ),
     CONSTRAINT transportadora_fornecedor_cnpj_check CHECK (LENGTH(CNPJTransportadora) = 14)
 );
-
-CREATE SEQUENCE seq_frotatransp
-    START WITH 50 INCREMENT BY 1;
