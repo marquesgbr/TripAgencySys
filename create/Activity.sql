@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Atividade(Codigo, Nome, Descricao, Duracao)
 -- Duracao -> dias 
 
@@ -14,30 +15,3 @@ CREATE TABLE Atividade (
 
 CREATE SEQUENCE code_atividade 
 START WITH 0 INCREMENT BY 1;
-
-INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
-VALUES(
-    code_atividade.nextval,
-    'Passeio de Barco',
-    'Passeio de barco pela orla de Recife',
-    1
-);
-
-INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
-VALUES(
-    90,
-    'Jantar Garantido!',
-    'Inclui janta no restaurante do resort CInDivirta por 3 noites',
-    3
-);
-
-INSERT INTO Atividade (Codigo, Nome, Descricao, Duracao)
-VALUES(
-    code_atividade.nextval,
-    'Degustaçao de Vinhos',
-    NULL,
-    1
-);
-
-
-SELECT * FROM Atividade;

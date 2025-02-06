@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- FornecedorEvento(CNPJ_E*, Tipo, CapacidadeMaxima)
 -- CNPJ_E referencia Fornecedor(CNPJ)
 
@@ -15,14 +16,3 @@ CREATE TABLE FornecedorEvento (
 CREATE SEQUENCE seq_fornevent
     START WITH 25 INCREMENT BY 1;
 
-
-INSERT INTO FornecedorEvento (CNPJ_E, Tipo, CapacidadeMaxima)
-VALUES (LPAD(seq_fornevent.NEXTVAL, 14, '0'), 'Corporativo', 500);
-
-INSERT INTO FornecedorEvento (CNPJ_E, Tipo, CapacidadeMaxima)
-VALUES ('44444444000133', 'Comemorativo', 250);
-
-INSERT INTO FornecedorEvento (CNPJ_E, Tipo, CapacidadeMaxima)
-VALUES ('55555555000144', 'Esportivo', 1000);
-
-SELECT * FROM FornecedorEvento;

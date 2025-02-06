@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- FornecedorHospedagem(CNPJ_H*, Classificacao, Acomodacao)
 -- CNPJ_H referencia Fornecedor(CNPJ)
 
@@ -16,13 +17,3 @@ CREATE TABLE FornecedorHospedagem (
 CREATE SEQUENCE seq_fornhosp
     START WITH 30 INCREMENT BY 1;
 
-INSERT INTO FornecedorHospedagem (CNPJ_H, Classificacao, Acomodacao)
-VALUES (LPAD(seq_fornhosp.NEXTVAL, 14, '0'), 3.9, 'Hotel');
-
-INSERT INTO FornecedorHospedagem (CNPJ_H, Classificacao, Acomodacao)
-VALUES ('66666666000155', 4.7, 'Pousada');
-
-INSERT INTO FornecedorHospedagem (CNPJ_H, Classificacao, Acomodacao)
-VALUES ('77777777000166', 2.5, 'Albergue');
-
-SELECT * FROM FornecedorHospedagem;

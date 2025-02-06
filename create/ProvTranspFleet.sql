@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- FrotaTransportadora(CNPJTransportadora*, Veiculo, Quantidade)
 -- CNPJTransportadora referencia Fornecedor_Transporte(CNPJ_T)
 -- Veiculo -> tipo
@@ -18,14 +19,3 @@ CREATE TABLE FrotaTransportadora (
 
 CREATE SEQUENCE seq_frotatransp
     START WITH 50 INCREMENT BY 1;
-
-INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
-VALUES (LPAD(seq_frotatransp.NEXTVAL, 14, '0'), 'Onibus', 25);
-
-INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
-VALUES ('88888888000177', 'Carro', 50);
-
-INSERT INTO FrotaTransportadora (CNPJTransportadora, Veiculo, Quantidade)
-VALUES ('99999999000188', 'Aviao', 10);
-
-SELECT * FROM FrotaTransportadora;

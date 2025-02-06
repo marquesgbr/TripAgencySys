@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Fornecedor(CNPJ, NomeEmpresa)
 
 CREATE TABLE Fornecedor (
@@ -9,23 +10,3 @@ CREATE TABLE Fornecedor (
 
 CREATE SEQUENCE prov_seq 
 START WITH 100 INCREMENT BY 1;
-
-INSERT INTO Fornecedor (CNPJ, NomeEmpresa) 
-VALUES(
-    '17190555670023',
-    'CInDivirta'
-);
-
-INSERT INTO Fornecedor (CNPJ, NomeEmpresa) 
-VALUES(
-    LPAD(prov_seq.nextval, 14, '12'),
-    'nomedeempresaumpoucomaislongo'
-);
-
-INSERT INTO Fornecedor (CNPJ, NomeEmpresa) 
-VALUES(
-    LPAD(prov_seq.nextval, 14, '404'),
-    'Tour Sem Erros LTDA'
-);
-
-SELECT * FROM Fornecedor;

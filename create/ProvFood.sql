@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- FornecedorAlimentacao(CNPJ_A*, Classificacao, Servico)
 -- CNPJ_A referencia Fornecedor(CNPJ)
 
@@ -16,14 +17,3 @@ CREATE TABLE FornecedorAlimentacao (
 CREATE SEQUENCE seq_fornalim
     START WITH 10 INCREMENT BY 1;
 
-
-INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico)
-VALUES (LPAD(seq_fornalime.NEXTVAL, 14, '67'), 4.5, 'Restaurante');
-
-INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico)
-VALUES ('22222222000111', 3.8, 'Buffet');
-
-INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico)
-VALUES ('33333333000122', 5.0, 'Fast Food');
-
-SELECT * FROM FornecedorAlimentacao;

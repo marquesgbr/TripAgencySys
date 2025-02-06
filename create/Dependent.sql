@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Dependente(Nome, CPFResponsavel*, Idade, Parentesco)
 -- CPFResponsavel referencia Cliente(CPF)
 
@@ -14,13 +15,3 @@ CREATE TABLE Dependente (
     CONSTRAINT idade_check CHECK (0<IDADE AND IDADE<18),
     CONSTRAINT cpf_check CHECK (LENGTH(CPFResponsavel) = 11)
 );
-
-INSERT INTO Dependente (Nome, CPFResponsavel, Idade, Parentesco)
-VALUES(
-    'Maria Souza',
-    17894563322,
-    7.2,
-    'Filho(a)'
-);
-
-SELECT * FROM Dependente;

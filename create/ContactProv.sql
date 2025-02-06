@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- ContatoFornecedor(CodFornecedor*, Telefone, Email)
 -- CodFornecedor referencia Fornecedor(CNPJ)
 
@@ -13,15 +14,3 @@ CREATE TABLE ContatoFornecedor (
 
 CREATE SEQUENCE seq_codfornecedor
     START WITH 100 INCREMENT BY 1;
-
-INSERT INTO ContatoFornecedor (CodFornecedor, Telefone, Email)
-VALUES (LPAD(seq_codfornecedor.NEXTVAL, 14, '21'), '11987654321', 'contato@empresa1.com.us');
-
-INSERT INTO ContatoFornecedor (CodFornecedor, Telefone, Email)
-VALUES ('12345678000195', '21987654321', 'suporte@empresa88.com.br');
-
-INSERT INTO ContatoFornecedor (CodFornecedor, Telefone, Email)
-VALUES ('98765432000187', '31999998888', 'atendimento@empresa2.com');
-
-SELECT * FROM ContatoFornecedor;
-

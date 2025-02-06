@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Possui(CodAtividade*, CodPacote*, CNPJFornecedor*)
 -- CodAtividade referencia Atividade(Codigo)
 
@@ -17,12 +18,3 @@ CREATE TABLE Possui (
 
 CREATE SEQUENCE possui_seq
 START WITH 1 INCREMENT BY 2;
-
-INSERT INTO Possui VALUES (1, 1, '12345678901234');
-INSERT INTO Possui VALUES (90, 11, '17190555670023');
-INSERT INTO Possui VALUES (2, possui_seq.nextval, '50787852849859');
-INSERT INTO Possui VALUES (4, 11, '45559011626759');
-INSERT INTO Possui VALUES (possui_seq.nextval, 3, '17190555670023');
-
-
-SELECT * FROM Possui;

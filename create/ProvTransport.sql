@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- FornecedorTransporte(CNPJ_T*, TipoTransporte)
 -- CNPJ_T referencia Fornecedor(CNPJ)
 
@@ -13,14 +14,3 @@ CREATE TABLE FornecedorTransporte (
 
 CREATE SEQUENCE seq_fornt
     START WITH 60000000000000 INCREMENT BY 1;
-
-INSERT INTO FornecedorTransporte (CNPJ_T, TipoTransporte)
-VALUES (LPAD(seq_fornt.NEXTVAL, 14, '0'), 'Rodoviario');
-
-INSERT INTO FornecedorTransporte (CNPJ_T, TipoTransporte)
-VALUES ('11111111000199', 'Aereo');
-
-INSERT INTO FornecedorTransporte (CNPJ_T, TipoTransporte)
-VALUES ('22222222111222', 'Maritimo');
-
-SELECT * FROM FornecedorTransporte;

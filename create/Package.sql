@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Pacote(Codigo, NomePacote, PrecoBase)
 TRUNCATE TABLE Pacote;
 
@@ -12,19 +13,3 @@ CREATE TABLE Pacote (
 
 CREATE SEQUENCE code_pacote
 START WITH 1 INCREMENT BY 1;
-
-INSERT INTO Pacote (Codigo, NomePacote, PrecoBase) 
-VALUES(
-    code_pacote.nextval,
-    'Pacote de Carnaval',
-    689.99
-);
-
-INSERT INTO Pacote (Codigo, NomePacote, PrecoBase) 
-VALUES(
-    11,
-    'Resort CInDivirta All-inclusive',
-    2278.00
-);
-
-SELECT * FROM Pacote;

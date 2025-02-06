@@ -1,3 +1,4 @@
+-- SQLBook: Code
 -- Reserva(Data_hora_reserva, CPFConsumidor*, CodPacote*, CodPromocao*, Data Entrada, Data Saida, Data Modificacao, Status)
 -- CPFConsumidor referencia Cliente(CPF)
 -- CodPacote referencia Pacote(Codigo)
@@ -25,25 +26,3 @@ CREATE TABLE Reserva (
     CONSTRAINT data_valid CHECK (Data_Entrada <= Data_Saida)
     CONSTRAINT reserva_check CHECK (LENGTH(CPFConsumidor)=11 AND CodPacote>0 AND CodPromocao>0)
 );
-
-INSERT INTO Reserva (
-    Data_hora_reserva, 
-    CPFConsumidor, 
-    CodPacote, 
-    CodPromocao,
-    Data_Entrada, 
-    Data_Saida, 
-    Data_Modificacao,
-    Status
-) VALUES (
-    TO_DATE('20/11/2024 14:01:30', 'DD/MM/YYYY HH24:MI:SS'),
-    17894563322,
-    11,
-    5,
-    TO_DATE('23/12/2024', 'DD/MM/YYYY'),
-    TO_DATE('02/01/2025', 'DD/MM/YYYY'),
-    TO_DATE('20/11/2024', 'DD/MM/YYYY'),
-    'Reservado'
-);
-
-SELECT * FROM Reserva;
