@@ -66,13 +66,13 @@ DECLARE
 BEGIN
     SELECT * INTO v_cliente_row 
     FROM clients 
-    WHERE cpf = :NEW.client_cpf;
+    WHERE cpf = :NEW.CPFConsumidor;
 
     CASE
         WHEN :NEW.status = 'Reservado' THEN
-            pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.client_cpf, 100);
+            pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.CPFConsumidor, 100);
         WHEN :NEW.status = 'Cancelado' THEN
-            pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.client_cpf, -50);
+            pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.CPFConsumidor, -50);
     END CASE;
 END;
 
@@ -111,9 +111,9 @@ BEGIN
     END LOOP;
 END;
 
--- 7. `calc_pontos_distribuidos_periodo` (Function): 
+-- 7. `pontos_distribuidos_periodo` (Function): 
 -- Calcula pontos distribuídos em um período, limitado por contador máximo, usando WHILE LOOP.
-CREATE OR REPLACE FUNCTION calc_pontos_distribuidos_periodo(
+CREATE OR REPLACE FUNCTION pontos_distribuidos_periodo(
     p_inicio DATE,
     p_fim DATE,
     p_contador_maximo IN NUMBER
@@ -177,4 +177,14 @@ BEGIN
     ELSE
         UPDATE clients SET categoria = 'SILVER';
     END IF;
+END;
+
+-- Atualizar todas as reservas que estao com status reservado para concluido se a data de saída for menor que a data atual
+CREATE OR REPLACE PROCEDURE update_reservas_concluidas (
+    p_data_atual DATE
+) IS
+BEGIN
+    UPDATE Reservas
+    SET status = 'Concluido'
+    WHERE status = 'Reservado' AND Data_Saida < p_data_atual;
 END;

@@ -1,4 +1,3 @@
--- SQLBook: Code
 
 -- Na primeira execucao, os DROP's nao vao executar corretamente, mas os objetos serao criados. 
 -- Depois de criadas as tabelas, ao executar esse arquivo novamente, ele executa 
@@ -72,7 +71,7 @@ CREATE TABLE Promocao (
     Desconto NUMBER(2) NOT NULL,
     CONSTRAINT promocao_pkey PRIMARY KEY (Codigo),
     CONSTRAINT salecode_gtezero CHECK (Codigo >= 0),
-    CONSTRAINT desconto_check CHECK (5<Desconto AND Desconto<90)
+    CONSTRAINT desconto_check CHECK (5<=Desconto AND Desconto<=90)
 );
 
 CREATE SEQUENCE code_promo
@@ -108,7 +107,7 @@ CREATE TABLE Reserva (
         REFERENCES Pacote(Codigo),
     CONSTRAINT reserva_fkey3 FOREIGN KEY (CodPromocao) 
         REFERENCES Promocao(Codigo),
-    CONSTRAINT status_check CHECK (Status IN ('Reservado', 'Cancelado', 'Modificado')),
+    CONSTRAINT status_check CHECK (Status IN ('Reservado', 'Cancelado', 'Concluido')),
     CONSTRAINT data_valid CHECK (Data_Entrada <= Data_Saida),
     CONSTRAINT reserva_check CHECK (LENGTH(CPFConsumidor)=11 AND CodPacote>0 AND CodPromocao>0)
 );
@@ -120,7 +119,7 @@ CREATE TABLE Atividade (
     Descricao VARCHAR2(70),
     Duracao DECIMAL(3,0),
     CONSTRAINT atividade_pkey PRIMARY KEY (Codigo),
-    CONSTRAINT activcode_gtezero CHECK (Codigo > 0),
+    CONSTRAINT activcode_gtzero CHECK (Codigo > 0),
     CONSTRAINT duracao_length CHECK (Duracao > 0)
 );
 
