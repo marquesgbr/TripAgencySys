@@ -85,3 +85,26 @@ HAVING COUNT(r.CodPacote) > ALL (
 );
 
 
+-- ALTER TABLE
+ALTER TABLE CLIENTE ADD categoria VARCHAR2(20);
+
+-- CREATE INDEX: Criar um índice na coluna 'Data_hora_reserva' da tabela 'Reserva'
+CREATE INDEX idx_reserva_data ON Reserva(Data_hora_reserva);
+
+-- Inserir cliente com e-mail invalido
+INSERT INTO Cliente (CPF, Nome, Telefone, Email, Data_Registro, Pontos_Fidelidade)
+VALUES (99999999999, 'Novo Cliente', '11987654321', 'novocliente@example.com.br.us.net', SYSDATE, 100);
+
+-- DELETE para cliente com e-mail invalido
+DELETE FROM Cliente WHERE CPF = 99999999999;
+
+-- UPDATE: Atualizar o status de reservas que já passaram da data de saída
+UPDATE Reservas
+SET status = 'Concluido'
+WHERE status = 'Reservado' AND Data_Saida < SYSDATE;
+
+-- Exemplos de GRANT e REVOKE (Nao executavel)
+GRANT SELECT ON Reserva TO funcionario;
+REVOKE DELETE ON Reserva FROM funcionario;
+
+
