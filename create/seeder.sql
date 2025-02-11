@@ -51,6 +51,9 @@ INSERT INTO Fornecedor VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Buffet
 INSERT INTO FornecedorAlimentacao (CNPJ_A, Classificacao, Servico) VALUES ('22222222000111', 3.8, 'Buffet');
 INSERT INTO FornecedorAlimentacao VALUES ('33333333000122', 5.0, 'Fast Food');
 INSERT INTO FornecedorAlimentacao VALUES ('56789012345678', 4.6, 'Buffet');
+INSERT INTO FornecedorAlimentacao VALUES ('67890123456789', 4.1, 'Self-Service');
+INSERT INTO FornecedorAlimentacao VALUES ('17190555670023', 3.1, 'Buffet');
+INSERT INTO FornecedorAlimentacao VALUES ('23456789012345', 4.8, 'Restaurante');
 INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-5, 14, '0'), 4.3, 'Restaurante');
 INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-4, 14, '0'), 3.9, 'Bar');
 INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-3, 14, '0'), 4.0, 'Self-Service');
@@ -216,14 +219,15 @@ INSERT INTO Possui VALUES (code_atividade.currval, code_pacote.currval, LPAD(seq
 
 -- Reserva
 INSERT INTO Reserva (Data_hora_reserva, CPFConsumidor, CodPacote, CodPromocao, Data_Entrada, Data_Saida, Data_Modificacao, Status) 
-VALUES (TO_DATE('20/11/2024 14:01:30', 'DD/MM/YYYY HH24:MI:SS'), '17894563322', code_pacote.currval - 1, code_promo.currval - 1, TO_DATE('23/12/2024', 'DD/MM/YYYY'), TO_DATE('02/01/2025', 'DD/MM/YYYY'), TO_DATE('20/11/2024', 'DD/MM/YYYY'), 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-7, '00000000010', code_pacote.currval - 6, code_promo.currval - 6, SYSDATE+30, SYSDATE+35, SYSDATE-7, 'Reservado');
+VALUES (TO_DATE('20/11/2024 14:01:30', 'DD/MM/YYYY HH24:MI:SS'), '17894563322', code_pacote.currval - 1, code_promo.currval - 1, TO_DATE('23/12/2024', 'DD/MM/YYYY'), TO_DATE('02/01/2025', 'DD/MM/YYYY'), TO_DATE('20/11/2024', 'DD/MM/YYYY'), 'Concluido');
+INSERT INTO Reserva VALUES (SYSDATE-7, '00000000010', code_pacote.currval - 7, code_promo.currval - 6, SYSDATE+30, SYSDATE+35, SYSDATE-7, 'Reservado');
 INSERT INTO Reserva VALUES (SYSDATE-6, '00000000009', code_pacote.currval - 5, code_promo.currval - 5, SYSDATE+40, SYSDATE+45, SYSDATE-6, 'Reservado');
 INSERT INTO Reserva VALUES (SYSDATE-5, '00000000008', code_pacote.currval - 4, code_promo.currval - 4, SYSDATE+50, SYSDATE+55, SYSDATE-5, 'Reservado');
 INSERT INTO Reserva VALUES (SYSDATE-4, '00000000007', code_pacote.currval - 3, code_promo.currval - 3, SYSDATE+60, SYSDATE+65, SYSDATE-4, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-3, '00000000006', code_pacote.currval - 2, code_promo.currval - 2, SYSDATE+70, SYSDATE+75, SYSDATE-3, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-2, '00000000005', code_pacote.currval - 1, code_promo.currval - 1, SYSDATE+80, SYSDATE+85, SYSDATE-2, 'Reservado');
-INSERT INTO Reserva VALUES (SYSDATE-1, '00000000004', code_pacote.currval, code_promo.currval, SYSDATE+90, SYSDATE+95, SYSDATE-1, 'Reservado');
+INSERT INTO Reserva VALUES (SYSDATE-3, '00000000006', code_pacote.currval - 2, code_promo.currval - 2, SYSDATE+70, SYSDATE+75, SYSDATE-3, 'Concluido');
+INSERT INTO Reserva VALUES (SYSDATE-2, '00000000005', code_pacote.currval - 1, code_promo.currval - 1, SYSDATE+80, SYSDATE+85, SYSDATE-2, 'Concluido');
+INSERT INTO Reserva VALUES (SYSDATE-1, '00000000004', code_pacote.currval, code_promo.currval, SYSDATE+90, SYSDATE+95, SYSDATE-1, 'Concluido');
+INSERT INTO Reserva VALUES (SYSDATE, '00000000003', code_pacote.currval-7, code_promo.currval, SYSDATE+100, SYSDATE+105, SYSDATE, 'Cancelado');
 
 
 
