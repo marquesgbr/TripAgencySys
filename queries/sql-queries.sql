@@ -92,9 +92,11 @@ HAVING COUNT(r.CodPacote) > ALL (
     WHERE c2.CPF IN (SELECT DISTINCT CPFIndicadoPor FROM Cliente WHERE CPFIndicadoPor IS NOT NULL)
 );
 
-
--- ALTER TABLE
-ALTER TABLE CLIENTE ADD categoria VARCHAR2(20);
+--  Atualiza todas as reservas que estao com status reservado para concluido 
+-- se a data de saída for menor que a data atual
+UPDATE Reservas
+SET status = 'Concluido'
+WHERE status = 'Reservado' AND Data_Saida < SYSDATE;
 
 -- CREATE INDEX: Criar um índice na coluna 'Data_hora_reserva' da tabela 'Reserva'
 CREATE INDEX idx_reserva_data ON Reserva(Data_hora_reserva);

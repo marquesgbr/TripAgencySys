@@ -3,9 +3,9 @@
 -- Gerencia informações de clientes com funções para consulta e atualização de pontos, usando records personalizados.
 CREATE OR REPLACE PACKAGE pkg_gestao_clientes AS
     TYPE t_cliente_record IS RECORD (
-        cpf clients.cpf%TYPE,
-        nome clients.nome%TYPE,
-        pontos clients.pontos%TYPE
+        cpf cliente.cpf%TYPE,
+        nome cliente.nome%TYPE,
+        pontos cliente.pontos_fidelidade%TYPE
     );
     
     FUNCTION get_client_info(p_cpf IN VARCHAR2) 
@@ -17,6 +17,7 @@ CREATE OR REPLACE PACKAGE pkg_gestao_clientes AS
     );
 END pkg_gestao_clientes;
 
+
 CREATE OR REPLACE PACKAGE BODY pkg_gestao_clientes AS
 -- 2. `get_client_info` (Function): 
 -- Recupera informações do cliente usando cursor, retornando um record customizado com CPF, nome e pontos.
@@ -24,7 +25,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_gestao_clientes AS
     RETURN t_cliente_record IS
         v_cliente t_cliente_record;
         CURSOR c_cliente IS 
-            SELECT * FROM clients WHERE cpf = p_cpf;
+            SELECT cpf, nome, pontos_fidelidade FROM cliente WHERE cpf = p_cpf;
     BEGIN
         OPEN c_cliente;
         FETCH c_cliente INTO v_cliente;
@@ -35,6 +36,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_gestao_clientes AS
             RAISE_APPLICATION_ERROR(-20001, 'Cliente não encontrado');
     END get_client_info;
 
+
 -- 3. `atualiza_pontos_cliente` (Procedure): 
 -- Atualiza a pontuação de um cliente no sistema, somando novos pontos ao saldo existente.
     PROCEDURE atualiza_pontos_cliente(
@@ -43,56 +45,97 @@ CREATE OR REPLACE PACKAGE BODY pkg_gestao_clientes AS
     ) IS
         v_pontos NUMBER;
     BEGIN
-        SELECT pontos INTO v_pontos 
-        FROM clients 
+        SELECT pontos_fidelidade INTO v_pontos 
+        FROM cliente 
         WHERE cpf = p_cpf;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Cliente não encontrado');
 
         p_pontos := p_pontos + v_pontos;
 
-        UPDATE clients 
-        SET pontos = p_pontos 
+        UPDATE cliente 
+        SET pontos_fidelidade = p_pontos 
         WHERE cpf = p_cpf;
     END atualiza_pontos_cliente;
 END pkg_gestao_clientes;
 
 
 -- 4. `trg_reserva_completa` (Trigger): 
--- Monitora inserções/atualizações em Reservas, atualizando pontos do cliente (+100 para reservas, -50 para cancelamentos).
+-- Monitora inserções/atualizações em Reservas, atualizando pontos do cliente (+100 para reservas, -100 para cancelamentos).
 CREATE OR REPLACE TRIGGER trg_reserva_completa
-BEFORE INSERT OR UPDATE ON Reservas
+BEFORE INSERT OR UPDATE ON Reserva
 FOR EACH ROW
 DECLARE
-    v_cliente_row clients%ROWTYPE;
+    v_cliente_row cliente%ROWTYPE;
+    v_pontos NUMBER;
 BEGIN
     SELECT * INTO v_cliente_row 
-    FROM clients 
+    FROM cliente 
     WHERE cpf = :NEW.CPFConsumidor;
 
     CASE
         WHEN :NEW.status = 'Reservado' THEN
-            pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.CPFConsumidor, 100);
+            v_pontos := 100;
         WHEN :NEW.status = 'Cancelado' THEN
-            pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.CPFConsumidor, -50);
+            v_pontos :=-100;
     END CASE;
-END;
+    pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.CPFConsumidor, v_pontos);
+END trg_reserva_completa;
+
 
 -- 5. `trg_bloquear_exclusao_pacote` (Trigger): 
 -- Impede a exclusão de pacotes que possuem reservas associadas, usando uma contagem de registros.
-CREATE OR REPLACE TRIGGER trg_bloquear_exclusao_pacote
-BEFORE DELETE ON Pacote
-DECLARE
-    v_count NUMBER;
-BEGIN
-    SELECT COUNT(*) INTO v_count 
-    FROM Reserva
-    WHERE CodPacote IN (SELECT Codigo FROM DELETED);
 
-    IF v_count > 0 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Erro: Não é possível excluir pacotes que possuem reservas associadas.');
+CREATE TYPE t_codDelet_tab AS TABLE OF NUMBER; -- Rodar essa linha 1 vez antes de compilar o trigger abaixo
+CREATE OR REPLACE TRIGGER trg_bloquear_exclusao_pacote
+FOR DELETE ON Pacote
+COMPOUND TRIGGER
+
+    cod_delet t_codDelet_tab := t_codDelet_tab(); 
+
+    BEFORE STATEMENT IS 
+    BEGIN
+        cod_delet.DELETE; 
+    END BEFORE STATEMENT;
+
+    AFTER EACH ROW IS
+    BEGIN
+        cod_delet.EXTEND;
+        cod_delet(cod_delet.LAST) := :OLD.Codigo;
+    END AFTER EACH ROW;
+
+    AFTER STATEMENT IS
+        v_count NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO v_count
+        FROM Reserva
+        WHERE CodPacote IN (SELECT COLUMN_VALUE FROM TABLE(cod_delet));
+
+        IF v_count > 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Erro: Não é possível excluir pacotes que possuem reservas associadas.');
+        END IF;
+    END AFTER STATEMENT;
+END trg_bloquear_exclusao_pacote;
+
+
+-- 6. `trg_impedir_delete_allpacks` (Trigger): 
+-- Impedir que haja zero pacotes depois que for inserido ao menos um pacote
+CREATE OR REPLACE TRIGGER trg_impedir_delete_allpacks
+AFTER DELETE ON Pacote
+DECLARE
+    v_total NUMBER;
+BEGIN
+
+    SELECT COUNT(*) INTO v_total FROM Pacote;
+
+    IF v_total = 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Erro: Não é permitido excluir todos os pacotes de uma vez.');
     END IF;
 END;
 
--- 6. `proc_analise_reservas` (Procedure):
+
+-- 7. `proc_analise_reservas` (Procedure):
 -- Analisa reservas em um mês específico, contando total de reservas com status 'Reservado'.
 CREATE OR REPLACE PROCEDURE proc_analise_reservas(
     p_mes IN NUMBER,
@@ -109,9 +152,10 @@ BEGIN
             p_total_reservas := p_total_reservas + 1;
         END IF;
     END LOOP;
-END;
+END proc_analise_reservas;
 
--- 7. `pontos_distribuidos_periodo` (Function): 
+
+-- 8. `pontos_distribuidos_periodo` (Function): 
 -- Calcula pontos distribuídos em um período, limitado por contador máximo, usando WHILE LOOP.
 CREATE OR REPLACE FUNCTION pontos_distribuidos_periodo(
     p_inicio DATE,
@@ -137,54 +181,51 @@ BEGIN
     END LOOP;
     CLOSE c_reservas;
     RETURN v_total;
-END;
+END pontos_distribuidos_periodo;
 
-DECLARE
-    TYPE t_pontos_table IS TABLE OF NUMBER INDEX BY BINARY_INTEGER;
-    v_pontos t_pontos_table;
-BEGIN
-    FOR i IN 1..10 LOOP
-        v_pontos(i) := i * 100;
-    END LOOP;
-END;
 
--- 8. `categoriza_cliente` (Procedure): 
+-- 9. `categoriza_cliente` (Procedure): 
 -- Classifica clientes em categorias (PLATINUM/GOLD/SILVER) baseado em pontos, com DDL dinâmico para criar coluna se necessário.
+
+-- ALTER TABLE: necessário executar 1 vez antes de compilar procedure abaixo
+ALTER TABLE CLIENTE ADD categoria VARCHAR2(20);
+
 CREATE OR REPLACE PROCEDURE categoriza_cliente(
     p_cpf IN VARCHAR2
 ) IS
     v_pontos NUMBER;
-    v_dummy VARCHAR2(20);
 BEGIN
-    SELECT pontos INTO v_pontos 
-    FROM clients 
-    WHERE cpf = p_cpf;
-
     BEGIN
-        SELECT column_name INTO v_dummy
-        FROM all_tab_columns
-        WHERE table_name = 'CLIENTE' 
-        AND column_name = 'CATEGORIA';
+        SELECT pontos_fidelidade INTO v_pontos 
+        FROM Cliente 
+        WHERE cpf = p_cpf;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            EXECUTE IMMEDIATE 'ALTER TABLE CLIENTE ADD categoria VARCHAR2(20)';
+            RAISE_APPLICATION_ERROR(-20001, 'Erro: Cliente não encontrado.');
     END;
 
     IF v_pontos > 1000 THEN
-        UPDATE clients SET categoria = 'PLATINUM';
+        UPDATE Cliente SET categoria = 'PLATINUM';
     ELSIF v_pontos > 500 THEN
-        UPDATE clients SET categoria = 'GOLD';
+        UPDATE Cliente SET categoria = 'GOLD';
     ELSE
-        UPDATE clients SET categoria = 'SILVER';
+        UPDATE Cliente SET categoria = 'SILVER';
     END IF;
-END;
+END categoriza_cliente;
 
--- Atualizar todas as reservas que estao com status reservado para concluido se a data de saída for menor que a data atual
-CREATE OR REPLACE PROCEDURE update_reservas_concluidas (
-    p_data_atual DATE
-) IS
+
+-- 10. Bloco Anônimo
+-- Simula um programa de bônus de pontos de fidelidade para os clientes
+DECLARE
+    TYPE t_pontos_table IS TABLE OF Cliente.Pontos_Fidelidade%TYPE INDEX BY BINARY_INTEGER;
+    v_pontos t_pontos_table;
+    v_cpf Cliente.CPF%TYPE;
+    i NUMBER := 1;
 BEGIN
-    UPDATE Reservas
-    SET status = 'Concluido'
-    WHERE status = 'Reservado' AND Data_Saida < p_data_atual;
+    FOR cliente_rec IN (SELECT CPF, Pontos_Fidelidade FROM Cliente) LOOP
+        v_pontos(i) := cliente_rec.Pontos_Fidelidade * 1.2; -- 20% de bônus
+        v_cpf := cliente_rec.CPF;
+        DBMS_OUTPUT.PUT_LINE('Cliente: ' || v_cpf || ' terá ' || v_pontos(i) || ' pontos após o bônus.');
+        i := i + 1;
+    END LOOP;
 END;
