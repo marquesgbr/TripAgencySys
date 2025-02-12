@@ -63,6 +63,19 @@ INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval-1, 14, 
 INSERT INTO FornecedorAlimentacao VALUES (LPAD(seq_codfornecedor.currval, 14, '0'), 4.2, 'Buffet');
 
 
+-- Fornecedor Alimentação && Hospedagem
+-- Create Fornecedor entries first
+INSERT INTO Fornecedor VALUES ('99110055660022', 'Hotel e Restaurante CCIN');
+INSERT INTO Fornecedor VALUES ('11005566002299', 'Pousada e Lanchonete CCEN');
+-- FornecedorAlimentacao entries
+INSERT INTO FornecedorAlimentacao VALUES ('99110055660022', 5.0, 'Restaurante');
+INSERT INTO FornecedorAlimentacao VALUES ('11005566002299', 4.0, 'Fast Food');
+-- FornecedorHospedagem entries
+INSERT INTO FornecedorHospedagem VALUES ('99110055660022', 5.0, 'Hotel');
+INSERT INTO FornecedorHospedagem VALUES ('11005566002299', 2.9, 'Pousada');
+
+
+
 -- FornecedorEvento
 -- Create Fornecedor entries first
 INSERT INTO Fornecedor VALUES (LPAD(seq_codfornecedor.nextval, 14, '0'), 'Eventos Culturais');

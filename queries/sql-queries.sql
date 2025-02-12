@@ -97,7 +97,7 @@ HAVING COUNT(r.CodPacote) > ALL (
 
 --  Atualiza todas as reservas que estao com status reservado para concluido 
 -- se a data de saída for menor que a data atual
-UPDATE Reservas
+UPDATE Reserva
 SET status = 'Concluido'
 WHERE status = 'Reservado' AND Data_Saida < SYSDATE;
 
