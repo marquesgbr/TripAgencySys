@@ -1,3 +1,4 @@
+-- SQLBook: Code
 
 -- 1. `pkg_gestao_clientes` (Package): 
 -- Gerencia informações de clientes com funções para consulta e atualização de pontos, usando records personalizados.
@@ -22,20 +23,19 @@ CREATE OR REPLACE PACKAGE BODY pkg_gestao_clientes AS
 -- 2. `get_client_info` (Function): 
 -- Recupera informações do cliente usando cursor, retornando um record customizado com CPF, nome e pontos.
     FUNCTION get_client_info(p_cpf IN VARCHAR2) 
-    RETURN t_cliente_record IS
-        v_cliente t_cliente_record;
-        CURSOR c_cliente IS 
-            SELECT cpf, nome, pontos_fidelidade FROM cliente WHERE cpf = p_cpf;
-    BEGIN
-        OPEN c_cliente;
-        FETCH c_cliente INTO v_cliente;
-        CLOSE c_cliente;
-        RETURN v_cliente;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Cliente não encontrado');
-    END get_client_info;
-
+        RETURN t_cliente_record IS
+            v_cliente t_cliente_record;
+            CURSOR c_cliente IS 
+                SELECT cpf, nome, pontos_fidelidade FROM cliente WHERE cpf = p_cpf;
+        BEGIN
+            OPEN c_cliente;
+            FETCH c_cliente INTO v_cliente;
+            CLOSE c_cliente;
+            RETURN v_cliente;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE_APPLICATION_ERROR(-20001, 'Cliente não encontrado');
+        END get_client_info;
 
 -- 3. `atualiza_pontos_cliente` (Procedure): 
 -- Atualiza a pontuação de um cliente no sistema, somando novos pontos ao saldo existente.
@@ -48,15 +48,15 @@ CREATE OR REPLACE PACKAGE BODY pkg_gestao_clientes AS
         SELECT pontos_fidelidade INTO v_pontos 
         FROM cliente 
         WHERE cpf = p_cpf;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20001, 'Cliente não encontrado');
 
         p_pontos := p_pontos + v_pontos;
 
         UPDATE cliente 
         SET pontos_fidelidade = p_pontos 
         WHERE cpf = p_cpf;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Cliente não encontrado');
     END atualiza_pontos_cliente;
 END pkg_gestao_clientes;
 
@@ -64,7 +64,7 @@ END pkg_gestao_clientes;
 -- 4. `trg_reserva_completa` (Trigger): 
 -- Monitora inserções/atualizações em Reservas, atualizando pontos do cliente (+100 para reservas, -100 para cancelamentos).
 CREATE OR REPLACE TRIGGER trg_reserva_completa
-BEFORE INSERT OR UPDATE ON Reserva
+AFTER INSERT OR UPDATE ON Reserva
 FOR EACH ROW
 DECLARE
     v_cliente_row cliente%ROWTYPE;
@@ -79,6 +79,8 @@ BEGIN
             v_pontos := 100;
         WHEN :NEW.status = 'Cancelado' THEN
             v_pontos :=-100;
+        ELSE
+            v_pontos := 10;
     END CASE;
     pkg_gestao_clientes.atualiza_pontos_cliente(:NEW.CPFConsumidor, v_pontos);
 END trg_reserva_completa;
@@ -142,9 +144,9 @@ CREATE OR REPLACE PROCEDURE proc_analise_reservas(
     p_total_reservas OUT NUMBER
 ) IS
     CURSOR c_reservas IS 
-        SELECT * FROM reservas 
-        WHERE EXTRACT(MONTH FROM data_reserva) = p_mes;
-    v_reserva_row reservas%ROWTYPE;
+        SELECT * FROM Reserva 
+        WHERE EXTRACT(MONTH FROM data_hora_reserva) = p_mes;
+    v_reserva_row Reserva%ROWTYPE;
 BEGIN
     p_total_reservas := 0;
     FOR reserva IN c_reservas LOOP
@@ -164,10 +166,10 @@ CREATE OR REPLACE FUNCTION pontos_distribuidos_periodo(
 ) RETURN NUMBER IS
     v_total NUMBER := 0;
     v_contador NUMBER := 0;
-    v_reserva_row reservas%ROWTYPE;
+    v_reserva_row Reserva%ROWTYPE;
     CURSOR c_reservas IS 
-        SELECT * FROM reservas 
-        WHERE data_reserva BETWEEN p_inicio AND p_fim AND status = 'Reservado';
+        SELECT * FROM Reserva 
+        WHERE data_hora_reserva BETWEEN p_inicio AND p_fim AND status = 'Reservado';
 BEGIN
     IF p_inicio > p_fim THEN
         RAISE_APPLICATION_ERROR(-20002, 'Data de início maior que data de fim');
