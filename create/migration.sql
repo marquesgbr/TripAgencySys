@@ -1,3 +1,4 @@
+-- SQLBook: Code
 
 -- Na primeira execucao, os DROP's nao vao executar corretamente, mas os objetos serao criados. 
 -- Depois de criadas as tabelas, ao executar esse arquivo novamente, ele executa 
@@ -83,8 +84,7 @@ CREATE TABLE Pacote (
     NomePacote VARCHAR2(40),
     PrecoBase NUMBER(7,2),
     CONSTRAINT pacote_pkey PRIMARY KEY (Codigo),
-    CONSTRAINT packcode_gtzero CHECK (Codigo > 0),
-    CONSTRAINT preco_check CHECK (PrecoBase >= 100)
+    CONSTRAINT packcode_gtzero CHECK (Codigo > 0)
 );
 
 CREATE SEQUENCE code_pacote
