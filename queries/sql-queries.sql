@@ -3,11 +3,11 @@
 
 -- Mostra o numero de reservas feitas com o pacote de maior preco
 SELECT COUNT(*) AS TotalMaxPreco 
-FROM Reservas 
+FROM Reserva 
 WHERE CodPacote IN (
     SELECT Codigo 
-    FROM Pacotes 
-    WHERE PrecoBase = (SELECT MAX(PrecoBase) FROM Pacotes)
+    FROM Pacote 
+    WHERE PrecoBase = (SELECT MAX(PrecoBase) FROM Pacote)
 );
 
 /* Mostra os 3 fornecedores da agencia que mais venderam nos ultimos 3 meses e 
@@ -28,13 +28,16 @@ SELECT AVG(p.PrecoBase*(1 - promo.Desconto/100)) AS TicketMedio
 FROM Reserva r
 JOIN Pacote p ON r.CodPacote = p.Codigo
 JOIN Promocao promo ON r.CodPromocao = promo.Codigo
-WHERE Reserva.Status = 'Concluido' OR Reserva.Status = 'Reservado'
-    AND r.Data_hora_reserva BETWEEN ADD_MONTHS(SYSDATE, -12) AND SYSDATE;
+WHERE r.Status = 'Concluido' OR r.Status = 'Reservado'
+AND r.Data_hora_reserva BETWEEN ADD_MONTHS(SYSDATE, -12) AND SYSDATE;
 
 -- Atividades com "Tour" no nome ou descricao e que possuem duracao maior que 4 horas
 CREATE VIEW Longa_Viagem AS 
 SELECT * FROM Atividade
 WHERE (Nome LIKE '%Tour%' OR Descricao LIKE '%Tour%') AND Duracao > 4;
+
+-- Para visualizar a view criada anteriormente 
+SELECT * FROM Longa_viagem; 
 
 -- Fornecedores de hospedagem e alimentacao com classificacao maior que 3
 SELECT h.CNPJ_H, h.Classificacao

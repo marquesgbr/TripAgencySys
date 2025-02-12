@@ -225,26 +225,3 @@ INSERT INTO Reserva VALUES (SYSDATE-3, '00000000006', code_pacote.currval - 2, c
 INSERT INTO Reserva VALUES (SYSDATE-2, '00000000005', code_pacote.currval - 1, code_promo.currval - 1, SYSDATE+80, SYSDATE+85, SYSDATE-2, 'Reservado');
 INSERT INTO Reserva VALUES (SYSDATE-1, '00000000004', code_pacote.currval, code_promo.currval, SYSDATE+90, SYSDATE+95, SYSDATE-1, 'Reservado');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
