@@ -1,50 +1,45 @@
--- Conjunto de Drops para Tipos e Tabelas (com FORCE)
+-- Conjunto de Drops para Tipos e Tabelas 
 
--- Tabelas de Relacionamento (N:N:N)
+-- Relacionamento multiplo
 DROP TABLE tb_possui FORCE;
 DROP TYPE tp_possui FORCE;
 
--- Tabelas de Especialização de Fornecedor
+-- Fornecedor
 DROP TABLE tb_fornecedor FORCE;
-
--- Tabelas de Fornecedores
 DROP TYPE tp_fornecedor_evento FORCE;
 DROP TYPE tp_fornecedor_transporte FORCE;
 DROP TYPE tp_fornecedor_alimentacao FORCE;
 DROP TYPE tp_fornecedor_hospedagem FORCE;
 DROP TYPE tp_fornecedor FORCE;
 
--- Tabelas de Atividades
+-- Atividade
 DROP TABLE tb_atividade FORCE;
---DROP TYPE tp_atividades_tab FORCE;
 DROP TYPE tp_atividade FORCE;
 DROP TYPE tp_ativ_tipos FORCE;
 DROP TYPE tp_atividade_tipo FORCE;
 
--- Tabelas de Reservas
+-- Reserva
 DROP TABLE tb_reserva FORCE;
 DROP TYPE tp_reserva FORCE;
 
--- Tabelas de Pacotes
+-- Pacote
 DROP TABLE tb_pacote FORCE;
 DROP TYPE tp_pacote FORCE;
 
--- Tabelas de Promocoes
+-- Promocoe
 DROP TABLE tb_promocao FORCE;
 DROP TYPE tp_promocao FORCE;
 
--- Tabelas de Clientes
+-- Cliente
 DROP TABLE tb_cliente FORCE;
 DROP TYPE tp_nt_clientes_indicados FORCE;
 DROP TYPE tp_possui_dep FORCE;
 DROP TYPE tp_cliente FORCE;
-DROP TRIGGER trg_check_indicador;
 
--- Tabelas de Dependentes
--- DROP TABLE tb_dependentes FORCE;
+-- Dependente
 DROP TYPE tp_dependente FORCE;
 
--- Tipos Auxiliares
+-- Auxiliares
 DROP TYPE tp_frotas_transp FORCE;
 DROP TYPE tp_frota FORCE;
 DROP TYPE tp_lista_contatos FORCE;
@@ -79,7 +74,7 @@ CREATE OR REPLACE TYPE tp_frota AS OBJECT(
 );
 /
 
-CREATE OR REPLACE TYPE tp_frotas_transp AS TABLE OF tp_frota;
+CREATE OR REPLACE TYPE tp_frotas_transp AS VARRAY(30) OF tp_frota;
 /
 
 
@@ -100,14 +95,7 @@ CREATE OR REPLACE TYPE BODY tp_dependente AS
     END;
 END;
 /
-
--- CREATE TABLE tb_dependentes OF tp_dependente (
---     nome NOT NULL, 
---     data_nascimento NOT NULL,
---     cpf_responsavel WITH ROWID REFERENCES tb_cliente ON DELETE CASCADE
--- );
-
--- fim Dependendete
+-- fim Dependente
 
 
 -- Cliente
@@ -124,17 +112,6 @@ CREATE OR REPLACE TYPE tp_cliente AS OBJECT (
     pontos_fidelidade NUMBER,
     cliente_indicador REF tp_cliente,
     dependentes tp_possui_dep, 
-
-    CONSTRUCTOR FUNCTION tp_cliente(
-        cpf VARCHAR2,
-        nome VARCHAR2,
-        email tp_email DEFAULT tp_email(NULL), 
-        telefone tp_telefone DEFAULT tp_telefone(NULL), 
-        data_registro DATE DEFAULT SYSDATE, 
-        pontos_fidelidade NUMBER DEFAULT 0, 
-        cliente_indicador REF tp_cliente DEFAULT NULL, 
-        dependentes tp_possui_dep DEFAULT tp_possui_dep()
-    ) RETURN SELF AS RESULT,
 
     MEMBER FUNCTION get_pontos RETURN NUMBER,
     MEMBER PROCEDURE add_pontos(pontos IN NUMBER),
@@ -154,28 +131,6 @@ ALTER TYPE tp_cliente ADD ATTRIBUTE (
 /
 
 CREATE OR REPLACE TYPE BODY tp_cliente AS
-    CONSTRUCTOR FUNCTION tp_cliente(
-        cpf VARCHAR2,
-        nome VARCHAR2,
-        email tp_email DEFAULT tp_email(NULL),
-        telefone tp_telefone DEFAULT tp_telefone(NULL),
-        data_registro DATE DEFAULT SYSDATE,
-        pontos_fidelidade NUMBER DEFAULT 0,
-        cliente_indicador REF tp_cliente DEFAULT NULL,
-        dependentes tp_possui_dep DEFAULT tp_possui_dep()
-    ) RETURN SELF AS RESULT IS
-    BEGIN
-        self.cpf := cpf;
-        self.nome := nome;
-        self.email := email;
-        self.telefone := telefone;
-        self.data_registro := data_registro;
-        self.pontos_fidelidade := pontos_fidelidade;
-        self.cliente_indicador := cliente_indicador;
-        self.dependentes := dependentes;
-        self.clientes_indicados := clientes_indicados;
-        RETURN;
-    END;
 
     MEMBER FUNCTION get_pontos RETURN NUMBER IS
     BEGIN
@@ -230,25 +185,6 @@ CREATE TABLE tb_cliente OF tp_cliente (
 NESTED TABLE clientes_indicados STORE AS tab_indicados,
 NESTED TABLE dependentes STORE AS tab_dependentes;
 
-
--- Trigger para impedir que um cliente se indicar
-CREATE OR REPLACE TRIGGER trg_check_indicador
-BEFORE INSERT OR UPDATE ON tb_cliente
-FOR EACH ROW
-DECLARE
-    v_cpf_indicador VARCHAR2(11);
-BEGIN
-    IF :new.cliente_indicador IS NOT NULL THEN
-        SELECT c.cpf INTO v_cpf_indicador
-        FROM tb_cliente c
-        WHERE REF(c) = :new.cliente_indicador;
-        
-        IF :new.cpf = v_cpf_indicador THEN
-            raise_application_error(-20001, 'Um cliente não pode indicar a si mesmo');
-        END IF;
-    END IF;
-END;
-/
 -- fim Cliente
 
 
@@ -275,12 +211,25 @@ CREATE OR REPLACE TYPE tp_pacote AS OBJECT (
     nome VARCHAR2(40),
     preco_base NUMBER(7,2),
 
+    CONSTRUCTOR FUNCTION tp_pacote(
+        codigo INT,
+        nome VARCHAR2,
+        preco_base NUMBER
+    ) RETURN SELF AS RESULT,
     MEMBER FUNCTION get_preco_final(promocao IN REF tp_promocao) RETURN NUMBER
 );
 /
 
 CREATE OR REPLACE TYPE BODY tp_pacote AS
     
+    CONSTRUCTOR FUNCTION tp_pacote(codigo INT, nome VARCHAR2, preco_base NUMBER) 
+    RETURN SELF AS RESULT IS
+    BEGIN
+        self.codigo := codigo;
+        self.nome := nome;
+        self.preco_base := preco_base;
+    END;
+
     MEMBER FUNCTION get_preco_final(promocao IN REF tp_promocao) RETURN NUMBER IS
         v_preco NUMBER;
         v_promocao tp_promocao;
@@ -366,7 +315,12 @@ CREATE OR REPLACE TYPE tp_atividade AS OBJECT (
 );
 /
 
-CREATE TABLE tb_atividade OF tp_atividade;
+CREATE TABLE tb_atividade OF tp_atividade(
+    codigo PRIMARY KEY,
+    nome NOT NULL,
+    duracao NOT NULL,
+    tipos NOT NULL
+);
 -- fim Atividade
 
 
@@ -423,6 +377,10 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor AS
     FINAL MEMBER PROCEDURE rem_contato(telefone IN VARCHAR2) IS
         v_index NUMBER := 0;
     BEGIN
+        IF self.contatos.COUNT = 0 THEN
+            raise_application_error(-20005, 'Não há contatos cadastrados');
+        END IF;
+
         FOR i IN 1..self.contatos.COUNT LOOP
             IF self.contatos(i).telefone.numero = telefone THEN
                 v_index := i;
@@ -478,24 +436,6 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor_alimentacao AS
 END;
 /
 
-
-CREATE OR REPLACE TYPE tp_fornecedor_transporte UNDER tp_fornecedor (
-    tipo_transporte VARCHAR2(15),
-    frotas tp_frotas_transp,
-    
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2
-);
-/
-
-CREATE OR REPLACE TYPE BODY tp_fornecedor_transporte AS
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
-    BEGIN
-        RETURN 'Transporte';
-    END;
-END;
-/
-
-
 CREATE OR REPLACE TYPE tp_fornecedor_evento UNDER tp_fornecedor (
     tipo VARCHAR2(15),
     capacidade_maxima NUMBER(5),
@@ -507,6 +447,77 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor_evento AS
     OVERRIDING MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
     BEGIN
         RETURN 'Evento';
+    END;
+END;
+/
+
+CREATE OR REPLACE TYPE tp_fornecedor_transporte UNDER tp_fornecedor (
+    tipo_transporte VARCHAR2(15),
+    frotas tp_frotas_transp,
+    
+    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2,
+    MEMBER PROCEDURE update_frota(v_veiculo VARCHAR2, v_quantidade INT),
+    MEMBER PROCEDURE remove_frota(v_veiculo VARCHAR2),
+    MEMBER FUNCTION get_frota(v_veiculo VARCHAR2) RETURN tp_frota
+);
+/
+
+CREATE OR REPLACE TYPE BODY tp_fornecedor_transporte AS
+    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
+    BEGIN
+        RETURN 'Transporte';
+    END;
+
+    MEMBER PROCEDURE update_frota(v_veiculo VARCHAR2, v_quantidade INT) IS
+    BEGIN
+
+        IF self.frotas.COUNT = self.frotas.LIMIT THEN
+            raise_application_error(-20004, 'Limite de frotas atingido');
+        END IF;
+
+        FOR i IN 1..self.frotas.COUNT LOOP
+            IF self.frotas(i).veiculo = v_veiculo THEN
+                self.frotas(i).quantidade := self.frotas(i).quantidade + v_quantidade;
+                RETURN;
+            END IF;
+        END LOOP;
+
+        self.frotas.EXTEND;
+        self.frotas(self.frotas.LAST) := tp_frota(v_veiculo, v_quantidade);
+    END;
+
+    MEMBER PROCEDURE remove_frota(v_veiculo VARCHAR2) IS
+        v_index NUMBER := 0;
+    BEGIN
+        IF self.frotas.COUNT = 0 THEN
+            raise_application_error(-20005, 'Não há frotas cadastradas');
+        END IF;
+
+        FOR i IN 1..self.frotas.COUNT LOOP
+            IF self.frotas(i).veiculo = v_veiculo THEN
+                v_index := i;
+                EXIT;
+            END IF;
+        END LOOP;
+
+        IF v_index = 0 THEN
+            raise_application_error(-20006, 'Veículo não encontrado na frota');
+        END IF;
+
+        FOR i IN v_index..self.frotas.COUNT-1 LOOP
+            self.frotas(i) := self.frotas(i+1);
+        END LOOP;
+        self.frotas.TRIM();
+    END;
+
+    MEMBER FUNCTION get_frota(v_veiculo VARCHAR2) RETURN tp_frota IS
+    BEGIN
+        FOR i IN 1..self.frotas.COUNT LOOP
+            IF self.frotas(i).veiculo = v_veiculo THEN
+                RETURN self.frotas(i);
+            END IF;
+        END LOOP;
+        RETURN NULL;
     END;
 END;
 /
