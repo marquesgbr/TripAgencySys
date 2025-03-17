@@ -5,17 +5,21 @@ DROP TABLE tb_possui FORCE;
 DROP TYPE tp_possui FORCE;
 
 -- Fornecedor
-DROP TABLE tb_fornecedor FORCE;
+DROP TYPE tp_fornecedor FORCE;
 DROP TYPE tp_fornecedor_evento FORCE;
 DROP TYPE tp_fornecedor_transporte FORCE;
 DROP TYPE tp_fornecedor_alimentacao FORCE;
 DROP TYPE tp_fornecedor_hospedagem FORCE;
-DROP TYPE tp_fornecedor FORCE;
+
+DROP TABLE tb_fornecedor_evento FORCE;
+DROP TABLE tb_fornecedor_transporte FORCE;
+DROP TABLE tb_fornecedor_alimentacao FORCE;
+DROP TABLE tb_fornecedor_hospedagem FORCE;
 
 -- Atividade
 DROP TABLE tb_atividade FORCE;
 DROP TYPE tp_atividade FORCE;
-DROP TYPE tp_ativ_tipos FORCE;
+DROP TYPE tp_lista_ativ_tipos FORCE;
 DROP TYPE tp_atividade_tipo FORCE;
 
 -- Reserva
@@ -32,7 +36,7 @@ DROP TYPE tp_promocao FORCE;
 
 -- Cliente
 DROP TABLE tb_cliente FORCE;
-DROP TYPE tp_nt_clientes_indicados FORCE;
+DROP TYPE tp_clientes_indicados FORCE;
 DROP TYPE tp_possui_dep FORCE;
 DROP TYPE tp_cliente FORCE;
 
@@ -55,7 +59,7 @@ CREATE OR REPLACE TYPE tp_telefone AS OBJECT (
 /
 
 CREATE OR REPLACE TYPE tp_email AS OBJECT (
-    email VARCHAR2(100)
+    email VARCHAR2(80)
 );
 /
 
@@ -68,30 +72,26 @@ CREATE OR REPLACE TYPE tp_contato AS OBJECT (
 CREATE OR REPLACE TYPE tp_lista_contatos AS VARRAY(5) OF tp_contato;
 /
 
-CREATE OR REPLACE TYPE tp_frota AS OBJECT(
-    veiculo VARCHAR2(20),
-    quantidade INT
-);
-/
-
-CREATE OR REPLACE TYPE tp_frotas_transp AS VARRAY(30) OF tp_frota;
-/
-
-
 -- Dependente
 CREATE OR REPLACE TYPE tp_dependente AS OBJECT (
     nome VARCHAR2(50),
     data_nascimento DATE,
     parentesco VARCHAR2(15),
 
-    FINAL MEMBER FUNCTION get_idade RETURN NUMBER
+    MEMBER FUNCTION get_idade RETURN NUMBER,
+    ORDER MEMBER FUNCTION compare_idade(outro tp_dependente) RETURN INT
 );
 /
 
 CREATE OR REPLACE TYPE BODY tp_dependente AS
-    FINAL MEMBER FUNCTION get_idade RETURN NUMBER IS
+    MEMBER FUNCTION get_idade RETURN NUMBER IS
     BEGIN
-        RETURN EXTRACT(YEAR FROM to_date(SYSDATE - self.data_nascimento));
+        RETURN EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM self.data_nascimento);
+    END;
+
+    ORDER MEMBER FUNCTION compare_idade (outro tp_dependente) RETURN INT IS
+    BEGIN
+        RETURN SIGN(self.get_idade - outro.get_idade);
     END;
 END;
 /
@@ -113,26 +113,25 @@ CREATE OR REPLACE TYPE tp_cliente AS OBJECT (
     cliente_indicador REF tp_cliente,
     dependentes tp_possui_dep, 
 
-    MEMBER FUNCTION get_pontos RETURN NUMBER,
+    MAP MEMBER FUNCTION get_pontos RETURN NUMBER,
     MEMBER PROCEDURE add_pontos(pontos IN NUMBER),
     MEMBER FUNCTION count_indicados RETURN NUMBER,
-    MEMBER FUNCTION get_categoria RETURN VARCHAR2, -- (Platinum, Gold, Silver, Bronze)
-    ORDER MEMBER FUNCTION compare_pontos(c tp_cliente) RETURN INT
+    MEMBER FUNCTION get_categoria RETURN VARCHAR2 -- (Platinum, Gold, Silver, Bronze)
 ) NOT FINAL;
 /
 
-CREATE OR REPLACE TYPE tp_nt_clientes_indicados AS TABLE OF REF tp_cliente;
+CREATE OR REPLACE TYPE tp_clientes_indicados AS TABLE OF REF tp_cliente;
 /
 
 -- Alterar cliente para considerar nova tabela de indicados
 ALTER TYPE tp_cliente ADD ATTRIBUTE (
-    clientes_indicados  tp_nt_clientes_indicados
+    clientes_indicados  tp_clientes_indicados
 ) CASCADE;
 /
 
 CREATE OR REPLACE TYPE BODY tp_cliente AS
 
-    MEMBER FUNCTION get_pontos RETURN NUMBER IS
+    MAP MEMBER FUNCTION get_pontos RETURN NUMBER IS
     BEGIN
         RETURN self.pontos_fidelidade;
     END;
@@ -159,17 +158,6 @@ CREATE OR REPLACE TYPE BODY tp_cliente AS
             RETURN 'BRONZE';
         END IF;
     END;
-    
-    ORDER MEMBER FUNCTION compare_pontos(c tp_cliente) RETURN INT IS
-    BEGIN
-        IF self.pontos_fidelidade < c.pontos_fidelidade THEN
-            RETURN -1;
-        ELSIF self.pontos_fidelidade > c.pontos_fidelidade THEN
-            RETURN 1;
-        ELSE
-            RETURN 0;
-        END IF;
-    END;
 END;
 /
 
@@ -178,12 +166,12 @@ CREATE TABLE tb_cliente OF tp_cliente (
     nome NOT NULL, 
     telefone NOT NULL,
     data_registro NOT NULL, 
-    SCOPE FOR (cliente_indicador) IS tb_cliente,
+    cliente_indicador SCOPE IS tb_cliente,
     CONSTRAINT cliente_cpf_check CHECK (LENGTH(CPF) = 11),
     CONSTRAINT pontos_check CHECK (pontos_fidelidade >= 0)
 ) 
-NESTED TABLE clientes_indicados STORE AS tab_indicados,
-NESTED TABLE dependentes STORE AS tab_dependentes;
+NESTED TABLE clientes_indicados STORE AS ntab_indicados,
+NESTED TABLE dependentes STORE AS ntab_dependentes;
 
 -- fim Cliente
 
@@ -283,9 +271,10 @@ CREATE OR REPLACE TYPE BODY tp_reserva AS
 END;
 /
 
--- Criacao com ROWID impede exclusao de pacotes com reservas associadas
 CREATE TABLE tb_reserva OF tp_reserva (
+    cliente WITH ROWID REFERENCES tb_cliente,
     pacote WITH ROWID REFERENCES tb_pacote,
+    tem_promo WITH ROWID REFERENCES tb_promocao,
     Data_hora_reserva NOT NULL,
     Data_Modificacao NOT NULL,
     Data_Entrada NOT NULL,
@@ -299,11 +288,11 @@ CREATE TABLE tb_reserva OF tp_reserva (
 
 -- Atividade
 CREATE OR REPLACE TYPE tp_atividade_tipo AS OBJECT(
-    tipo VARCHAR2(25)
+    categoria VARCHAR2(25)
 );
 /
 
-CREATE OR REPLACE TYPE tp_ativ_tipos AS VARRAY(8) OF tp_atividade_tipo;
+CREATE OR REPLACE TYPE tp_lista_ativ_tipos AS VARRAY(8) OF tp_atividade_tipo;
 /
 
 CREATE OR REPLACE TYPE tp_atividade AS OBJECT (
@@ -311,7 +300,7 @@ CREATE OR REPLACE TYPE tp_atividade AS OBJECT (
     nome VARCHAR2(40),
     descricao VARCHAR2(70),
     duracao NUMBER,
-    tipos tp_ativ_tipos
+    tipo tp_lista_ativ_tipos
 );
 /
 
@@ -319,7 +308,7 @@ CREATE TABLE tb_atividade OF tp_atividade(
     codigo PRIMARY KEY,
     nome NOT NULL,
     duracao NOT NULL,
-    tipos NOT NULL
+    tipo NOT NULL
 );
 -- fim Atividade
 
@@ -330,14 +319,14 @@ CREATE OR REPLACE TYPE tp_fornecedor AS OBJECT (
     nome_empresa VARCHAR2(50),
     contatos tp_lista_contatos,
 
-    NOT INSTANTIABLE MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2,
+    NOT INSTANTIABLE MAP MEMBER FUNCTION total_capac RETURN INT,
     FINAL MEMBER FUNCTION calc_faturamento_potencial RETURN NUMBER, 
     FINAL MEMBER PROCEDURE add_contato(novo IN tp_contato),
-    FINAL MEMBER PROCEDURE rem_contato(telefone IN VARCHAR2)
+    FINAL MEMBER PROCEDURE rem_contato(telefone IN VARCHAR2) 
 ) NOT FINAL NOT INSTANTIABLE;
 /
 
---   Possui (Relacionamento N:N:N)
+--  Possui (Relacionamento N:N:N)
 CREATE OR REPLACE TYPE tp_possui AS OBJECT(
     fornecedor REF tp_fornecedor,
     pacote REF tp_pacote,
@@ -345,9 +334,11 @@ CREATE OR REPLACE TYPE tp_possui AS OBJECT(
 );
 /
 
-CREATE TABLE tb_possui OF tp_possui;
---   fim Possui
-
+CREATE TABLE tb_possui OF tp_possui(
+    pacote SCOPE IS tb_pacote,
+    atividade SCOPE IS tb_atividade 
+);
+--  fim Possui
 
 CREATE OR REPLACE TYPE BODY tp_fornecedor AS
 
@@ -355,8 +346,7 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor AS
     FINAL MEMBER FUNCTION calc_faturamento_potencial RETURN NUMBER IS
         v_total NUMBER := 0;
     BEGIN
-        SELECT SUM(p.preco_base)
-        INTO v_total
+        SELECT SUM(p.preco_base) INTO v_total
         FROM tb_pacote p, tb_possui pos
         WHERE REF(p) = pos.pacote
         AND SELF = DEREF(pos.fornecedor);
@@ -399,126 +389,158 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor AS
     END;
 END;
 /
-
-CREATE TABLE tb_fornecedor OF tp_fornecedor;
 -- fim Tipo base fornecedor
 
 
 -- Especializacoes de fornecedor
+
+--  hospedagem
 CREATE OR REPLACE TYPE tp_fornecedor_hospedagem UNDER tp_fornecedor (
     classificacao NUMBER(4,3),
+    max_hospedes INT,
     acomodacao VARCHAR2(15),
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2
+
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT
 );
 /
+
+CREATE TABLE tb_fornecedor_hospedagem OF tp_fornecedor_hospedagem (
+    cnpj PRIMARY KEY,
+    max_hospedes NOT NULL,
+    acomodacao NOT NULL,
+    classificacao NOT NULL,
+    CONSTRAINT hosp_class_check CHECK (classificacao BETWEEN 0 AND 5),
+    CONSTRAINT acom_check CHECK (acomodacao IN ('Albergue', 'Casa', 'Chale', 'Hotel', 'Pousada'))
+);
 
 CREATE OR REPLACE TYPE BODY tp_fornecedor_hospedagem AS
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT IS
     BEGIN
-        RETURN 'Hospedagem';
+        RETURN self.max_hospedes;
     END;
 END;
 /
+--  fim hospedagem
 
 
+--  alimentacao
 CREATE OR REPLACE TYPE tp_fornecedor_alimentacao UNDER tp_fornecedor (
     classificacao NUMBER(4,3),
+    clientes_simult INT,
     servico VARCHAR2(15),
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2
+
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT
 );
 /
 
+CREATE TABLE tb_fornecedor_alimentacao OF tp_fornecedor_alimentacao (
+    cnpj PRIMARY KEY,
+    classificacao NOT NULL,
+    clientes_simult NOT NULL,
+    servico NOT NULL,
+    CONSTRAINT forn_alim_class_check CHECK (classificacao BETWEEN 0 AND 5),
+    CONSTRAINT forn_alim_serv_check CHECK (servico IN ('Buffet', 'Bar', 'Fast Food', 'Restaurante', 'Self-Service'))
+);
+
 CREATE OR REPLACE TYPE BODY tp_fornecedor_alimentacao AS
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT IS
     BEGIN
-        RETURN 'Alimentacao';
+        RETURN self.clientes_simult;
     END;
 END;
 /
+--  fim alimentacao
 
+
+--  evento
 CREATE OR REPLACE TYPE tp_fornecedor_evento UNDER tp_fornecedor (
     tipo VARCHAR2(15),
     capacidade_maxima NUMBER(5),
-    OVERRIDING MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2
+
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT
 );
 /
 
+CREATE TABLE tb_fornecedor_evento OF tp_fornecedor_evento (
+    cnpj PRIMARY KEY,
+    capacidade_maxima NOT NULL,
+    tipo NOT NULL,
+    CONSTRAINT forn_evento_tipo_check 
+    CHECK (tipo IN ('Comemorativo', 'Corporativo', 'Cultural', 'Esportivo', 'Religioso'))
+);
+
 CREATE OR REPLACE TYPE BODY tp_fornecedor_evento AS
-    OVERRIDING MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT IS
     BEGIN
-        RETURN 'Evento';
+        RETURN self.capacidade_maxima;
     END;
 END;
+/
+--  fim evento
+
+
+--  transporte
+CREATE OR REPLACE TYPE tp_frota AS OBJECT(
+    veiculo VARCHAR2(20),
+    quantidade INT
+);
+/
+
+CREATE OR REPLACE TYPE tp_frotas_transp AS TABLE OF tp_frota;
 /
 
 CREATE OR REPLACE TYPE tp_fornecedor_transporte UNDER tp_fornecedor (
     tipo_transporte VARCHAR2(15),
     frotas tp_frotas_transp,
     
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2,
-    MEMBER PROCEDURE update_frota(v_veiculo VARCHAR2, v_quantidade INT),
-    MEMBER PROCEDURE remove_frota(v_veiculo VARCHAR2),
-    MEMBER FUNCTION get_frota(v_veiculo VARCHAR2) RETURN tp_frota
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT,
+    MEMBER PROCEDURE upsert_frota(v_veiculo VARCHAR2, v_quantidade INT)
 );
 /
 
+CREATE TABLE tb_fornecedor_transporte OF tp_fornecedor_transporte (
+    cnpj PRIMARY KEY,
+    tipo_transporte NOT NULL,
+    CONSTRAINT forn_trans_tipo_check 
+    CHECK (tipo_transporte IN ('Aereo', 'Ferroviario', 'Maritimo', 'Rodoviario'))
+) NESTED TABLE frotas STORE AS ntab_frotas;
+
 CREATE OR REPLACE TYPE BODY tp_fornecedor_transporte AS
-    OVERRIDING MAP MEMBER FUNCTION get_fornecedor_tipo RETURN VARCHAR2 IS
+    OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT IS
+        v_total_vehic INT := 0;
     BEGIN
-        RETURN 'Transporte';
+        SELECT SUM(f.quantidade) INTO v_total_vehic
+        FROM TABLE(SELECT t.frotas
+            FROM TB_FORNECEDOR_TRANSPORTE t
+            WHERE t.cnpj = self.cnpj) f;
+
+        RETURN v_total_vehic;
     END;
 
-    MEMBER PROCEDURE update_frota(v_veiculo VARCHAR2, v_quantidade INT) IS
+    MEMBER PROCEDURE upsert_frota(v_veiculo VARCHAR2, v_quantidade INT) IS
+        v_exists NUMBER;
     BEGIN
+        SELECT COUNT(*) INTO v_exists
+        FROM TABLE(SELECT t.frotas
+            FROM TB_FORNECEDOR_TRANSPORTE t
+            WHERE t.cnpj = self.cnpj) f
+        WHERE f.veiculo = v_veiculo;
 
-        IF self.frotas.COUNT = self.frotas.LIMIT THEN
-            raise_application_error(-20004, 'Limite de frotas atingido');
+        IF v_exists > 0 THEN
+            UPDATE TABLE(SELECT t.frotas
+                FROM TB_FORNECEDOR_TRANSPORTE t
+                WHERE t.cnpj = self.cnpj) f
+            SET f.quantidade = f.quantidade + v_quantidade
+            WHERE f.veiculo = v_veiculo;
+        ELSE
+            INSERT INTO TABLE(SELECT t.frotas
+                FROM TB_FORNECEDOR_TRANSPORTE t
+                WHERE t.cnpj = self.cnpj)
+            VALUES (tp_frota(v_veiculo, v_quantidade));
         END IF;
-
-        FOR i IN 1..self.frotas.COUNT LOOP
-            IF self.frotas(i).veiculo = v_veiculo THEN
-                self.frotas(i).quantidade := self.frotas(i).quantidade + v_quantidade;
-                RETURN;
-            END IF;
-        END LOOP;
-
-        self.frotas.EXTEND;
-        self.frotas(self.frotas.LAST) := tp_frota(v_veiculo, v_quantidade);
-    END;
-
-    MEMBER PROCEDURE remove_frota(v_veiculo VARCHAR2) IS
-        v_index NUMBER := 0;
-    BEGIN
-        IF self.frotas.COUNT = 0 THEN
-            raise_application_error(-20005, 'Não há frotas cadastradas');
-        END IF;
-
-        FOR i IN 1..self.frotas.COUNT LOOP
-            IF self.frotas(i).veiculo = v_veiculo THEN
-                v_index := i;
-                EXIT;
-            END IF;
-        END LOOP;
-
-        IF v_index = 0 THEN
-            raise_application_error(-20006, 'Veículo não encontrado na frota');
-        END IF;
-
-        FOR i IN v_index..self.frotas.COUNT-1 LOOP
-            self.frotas(i) := self.frotas(i+1);
-        END LOOP;
-        self.frotas.TRIM();
-    END;
-
-    MEMBER FUNCTION get_frota(v_veiculo VARCHAR2) RETURN tp_frota IS
-    BEGIN
-        FOR i IN 1..self.frotas.COUNT LOOP
-            IF self.frotas(i).veiculo = v_veiculo THEN
-                RETURN self.frotas(i);
-            END IF;
-        END LOOP;
-        RETURN NULL;
     END;
 END;
 /
+--  fim transporte
+
 -- fim Especializacoes de fornecedor
