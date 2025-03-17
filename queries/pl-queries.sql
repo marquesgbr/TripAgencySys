@@ -187,7 +187,7 @@ END pontos_distribuidos_periodo;
 
 
 -- 9. `categoriza_cliente` (Procedure): 
--- Classifica clientes em categorias (PLATINUM/GOLD/SILVER) baseado em pontos, com DDL dinâmico para criar coluna se necessário.
+-- Classifica clientes em categorias (PLATINUM/GOLD/SILVER) baseado em pontos
 
 -- ALTER TABLE: necessário executar 1 vez antes de compilar procedure abaixo
 ALTER TABLE CLIENTE ADD categoria VARCHAR2(20);
