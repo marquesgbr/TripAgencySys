@@ -204,6 +204,7 @@ CREATE OR REPLACE TYPE tp_pacote AS OBJECT (
         nome VARCHAR2,
         preco_base NUMBER
     ) RETURN SELF AS RESULT,
+
     MEMBER FUNCTION get_preco_final(promocao IN REF tp_promocao) RETURN NUMBER
 );
 /
@@ -216,6 +217,7 @@ CREATE OR REPLACE TYPE BODY tp_pacote AS
         self.codigo := codigo;
         self.nome := nome;
         self.preco_base := preco_base;
+        RETURN;
     END;
 
     MEMBER FUNCTION get_preco_final(promocao IN REF tp_promocao) RETURN NUMBER IS
@@ -396,9 +398,9 @@ END;
 
 --  hospedagem
 CREATE OR REPLACE TYPE tp_fornecedor_hospedagem UNDER tp_fornecedor (
+    acomodacao VARCHAR2(15),
     classificacao NUMBER(4,3),
     max_hospedes INT,
-    acomodacao VARCHAR2(15),
 
     OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT
 );
@@ -425,9 +427,9 @@ END;
 
 --  alimentacao
 CREATE OR REPLACE TYPE tp_fornecedor_alimentacao UNDER tp_fornecedor (
+    servico VARCHAR2(15),
     classificacao NUMBER(4,3),
     clientes_simult INT,
-    servico VARCHAR2(15),
 
     OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT
 );
@@ -438,8 +440,8 @@ CREATE TABLE tb_fornecedor_alimentacao OF tp_fornecedor_alimentacao (
     classificacao NOT NULL,
     clientes_simult NOT NULL,
     servico NOT NULL,
-    CONSTRAINT forn_alim_class_check CHECK (classificacao BETWEEN 0 AND 5),
-    CONSTRAINT forn_alim_serv_check CHECK (servico IN ('Buffet', 'Bar', 'Fast Food', 'Restaurante', 'Self-Service'))
+    CONSTRAINT alim_class_check CHECK (classificacao BETWEEN 0 AND 5),
+    CONSTRAINT alim_serv_check CHECK (servico IN ('Buffet', 'Bar', 'Fast Food', 'Restaurante', 'Self-Service'))
 );
 
 CREATE OR REPLACE TYPE BODY tp_fornecedor_alimentacao AS
@@ -455,7 +457,7 @@ END;
 --  evento
 CREATE OR REPLACE TYPE tp_fornecedor_evento UNDER tp_fornecedor (
     tipo VARCHAR2(15),
-    capacidade_maxima NUMBER(5),
+    capacidade_maxima INT,
 
     OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT
 );
@@ -465,8 +467,8 @@ CREATE TABLE tb_fornecedor_evento OF tp_fornecedor_evento (
     cnpj PRIMARY KEY,
     capacidade_maxima NOT NULL,
     tipo NOT NULL,
-    CONSTRAINT forn_evento_tipo_check 
-    CHECK (tipo IN ('Comemorativo', 'Corporativo', 'Cultural', 'Esportivo', 'Religioso'))
+    CONSTRAINT evento_tipo_check 
+    CHECK (tipo IN ('Comemorativo', 'Corporativo', 'Cultural', 'Esportivo', 'Religioso', 'Musical', 'Comercial'))
 );
 
 CREATE OR REPLACE TYPE BODY tp_fornecedor_evento AS
@@ -501,7 +503,7 @@ CREATE OR REPLACE TYPE tp_fornecedor_transporte UNDER tp_fornecedor (
 CREATE TABLE tb_fornecedor_transporte OF tp_fornecedor_transporte (
     cnpj PRIMARY KEY,
     tipo_transporte NOT NULL,
-    CONSTRAINT forn_trans_tipo_check 
+    CONSTRAINT trans_tipo_check 
     CHECK (tipo_transporte IN ('Aereo', 'Ferroviario', 'Maritimo', 'Rodoviario'))
 ) NESTED TABLE frotas STORE AS ntab_frotas;
 
