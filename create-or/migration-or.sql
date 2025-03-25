@@ -503,7 +503,7 @@ CREATE OR REPLACE TYPE tp_fornecedor_transporte UNDER tp_fornecedor (
 CREATE TABLE tb_fornecedor_transporte OF tp_fornecedor_transporte (
     cnpj PRIMARY KEY,
     tipo_transporte NOT NULL,
-    CONSTRAINT trans_tipo_check 
+    CONSTRAINT transp_tipo_check 
     CHECK (tipo_transporte IN ('Aereo', 'Ferroviario', 'Maritimo', 'Rodoviario'))
 ) NESTED TABLE frotas STORE AS ntab_frotas;
 
