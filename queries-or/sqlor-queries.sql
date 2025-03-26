@@ -192,3 +192,39 @@ WHERE
     AND (SELECT COUNT(*) FROM TABLE(a.tipo) t) > 1
 ;
 
+-- Veículos de cada empresa de transportes 
+
+SELECT
+    ft.nome_empresa,
+    f.veiculo,
+    ft.tipo_transporte,
+    f.quantidade,
+    ft.total_capac() AS capacidade_total
+FROM
+    tb_fornecedor_transporte ft,
+    TABLE(ft.frotas) f
+WHERE
+    f.quantidade > 0
+ORDER BY
+    ft.nome_empresa,
+    f.veiculo;
+
+
+-- Relatório das promoções que cada cliente teve nos pacotes que ele comprou e quanto ele economizou
+
+SELECT
+    DEREF(r.cliente).nome AS cliente,
+    p.nome AS nome_pacote,
+    p.preco_base,    
+    DEREF(r.tem_promo).nome AS nome_promocao,
+    p.get_preco_final(r.tem_promo) AS preco_final,
+    DEREF(r.tem_promo).desconto || '%' AS desconto,
+    p.preco_base - p.get_preco_final(r.tem_promo) AS economia,
+    p.codigo AS codigo_pacote,
+    DEREF(r.tem_promo).codigo AS codigo_promocao
+FROM tb_pacote p
+JOIN tb_reserva r ON r.pacote = REF(p)
+WHERE r.tem_promo IS NOT NULL
+ORDER BY (p.preco_base - p.get_preco_final(r.tem_promo)) DESC;
+
+
