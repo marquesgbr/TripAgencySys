@@ -86,6 +86,8 @@ WHERE (h.acomodacao, VALUE(h).calc_faturamento_potencial()) IN (
 )
 ORDER BY VALUE(h) DESC;
 
+----
+
 SELECT 
     h.acomodacao,
     h.nome_empresa,
@@ -169,3 +171,24 @@ WHERE (e.tipo, e.capacidade_maxima) IN (
     GROUP BY e2.tipo
 )
 ORDER BY VALUE(e) DESC;
+
+
+-- Atividades que têm o tipo 'Cultural' e que têm mais de um tipo
+
+SELECT
+    a.codigo,
+    a.nome,
+    (SELECT t.categoria FROM TABLE(a.tipo) t WHERE ROWNUM = 1) AS tipo_principal,
+    (SELECT LISTAGG(t.categoria, ', ') WITHIN GROUP (ORDER BY t.categoria)FROM TABLE(a.tipo) t) AS tipos_atividade,
+    (SELECT COUNT(*) FROM TABLE(a.tipo) t) AS quantidade_tipos
+FROM
+    tb_atividade a
+WHERE
+    EXISTS (
+        SELECT 1 
+        FROM TABLE(a.tipo) t
+        WHERE t.categoria = 'Cultural'
+    )
+    AND (SELECT COUNT(*) FROM TABLE(a.tipo) t) > 1
+;
+
