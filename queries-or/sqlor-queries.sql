@@ -14,16 +14,158 @@ GROUP BY c.nome, c.get_categoria()
 ORDER BY total_gasto DESC NULLS LAST;
 
 
--- Relatorio de clientes: sumariza numero de pacotes, dependentes e categoria por cliente
+-- Relatorio de clientes: sumariza numero de pacotes, dependentes, indicados e categoria por cliente
 SELECT 
     c.nome,
     c.pontos_fidelidade,
-    COUNT(r.pacote) as total_pacotes,
-    COUNT(VALUE(d)) as total_dependentes,
+    COUNT(DISTINCT r.pacote) as total_pacotes,
+    (SELECT COUNT(VALUE(d)) 
+     FROM tb_cliente c2, TABLE(c2.dependentes) d 
+     WHERE c2.cpf = c.cpf
+    ) as total_dependentes,
+    c.count_indicados() as total_indicados,
     c.get_categoria() as categoria
 FROM tb_cliente c
 LEFT JOIN tb_reserva r ON REF(c) = r.cliente
-LEFT JOIN TABLE(c.dependentes) d ON 1=1
-GROUP BY c.nome, c.pontos_fidelidade, c.get_categoria()
-ORDER BY c.pontos_fidelidade;
+GROUP BY c.nome, c.cpf, c.pontos_fidelidade, c.get_categoria(), c.count_indicados()
+ORDER BY c.pontos_fidelidade DESC;
 
+
+-------------
+-- Gerar um relatório de Fornecedor que exibe para cada fornecedor os Pacotes que ele fornece algum serviço para
+
+CREATE OR REPLACE VIEW v_fornecedores_todos AS
+WITH fornecedores AS (
+    SELECT VALUE(fa) AS fornecedor FROM tb_fornecedor_alimentacao fa
+    UNION ALL
+    SELECT VALUE(fh) FROM tb_fornecedor_hospedagem fh
+    UNION ALL
+    SELECT VALUE(ft) FROM tb_fornecedor_transporte ft
+    UNION ALL
+    SELECT VALUE(fe) FROM tb_fornecedor_evento fe
+)
+SELECT 
+    fs.fornecedor.cnpj AS cnpj,
+    fs.fornecedor.nome_empresa AS nome_empresa
+FROM fornecedores fs;
+
+SELECT
+    f.nome_empresa,
+    f.cnpj,
+    p.nome AS Pacote,
+    p.preco_base as Preco_Pacote
+FROM
+    v_fornecedores_todos f
+JOIN tb_pacote p ON 1=1
+JOIN tb_possui ps ON ps.pacote = REF(p)
+WHERE
+    ps.fornecedor IN (
+        SELECT REF(fa) FROM tb_fornecedor_alimentacao fa WHERE fa.cnpj = f.cnpj
+        UNION ALL
+        SELECT REF(fh) FROM tb_fornecedor_hospedagem fh WHERE fh.cnpj = f.cnpj
+        UNION ALL
+        SELECT REF(ft) FROM tb_fornecedor_transporte ft WHERE ft.cnpj = f.cnpj
+        UNION ALL
+        SELECT REF(fe) FROM tb_fornecedor_evento fe WHERE fe.cnpj = f.cnpj
+    );
+
+
+----------------
+
+SELECT 
+    h.acomodacao,
+    h.nome_empresa,
+    VALUE(h).calc_faturamento_potencial() as fat_pots
+FROM tb_fornecedor_hospedagem h
+WHERE (h.acomodacao, VALUE(h).calc_faturamento_potencial()) IN (
+    SELECT 
+        h2.acomodacao,
+        MAX(VALUE(h2).calc_faturamento_potencial())
+    FROM tb_fornecedor_hospedagem h2
+    GROUP BY h2.acomodacao
+)
+ORDER BY VALUE(h) DESC;
+
+SELECT 
+    h.acomodacao,
+    h.nome_empresa,
+    VALUE(h).calc_faturamento_potencial() as fat_pots
+FROM tb_fornecedor_hospedagem h
+WHERE (h.acomodacao, VALUE(h).calc_faturamento_potencial()) IN (
+    SELECT 
+        h2.acomodacao,
+        MAX(VALUE(h2).calc_faturamento_potencial())
+    FROM tb_fornecedor_hospedagem h2
+    GROUP BY h2.acomodacao
+)
+ORDER BY VALUE(h) DESC;
+
+DECLARE
+    v_forn_transp tp_fornecedor_transporte;
+    v_frota tp_frota;
+    v_nome VARCHAR2(100);
+    CURSOR c_fornec_transp IS SELECT VALUE(t) FROM tb_fornecedor_transporte t;
+BEGIN
+    OPEN c_fornec_transp;
+    LOOP
+        FETCH c_fornec_transp INTO v_forn_transp;
+        EXIT WHEN c_fornec_transp%NOTFOUND;
+        
+        -- Print the fornecedor_transporte details
+        DBMS_OUTPUT.PUT_LINE('Fornecedor: ' || v_forn_transp.tipo_transporte);
+        
+        -- Iterate over the frotas collection
+        FOR i IN 1 .. v_forn_transp.frotas.COUNT LOOP
+            v_frota := v_forn_transp.frotas(i);
+            DBMS_OUTPUT.PUT_LINE('  Veículo: ' || v_frota.veiculo || ', Quantidade: ' || v_frota.quantidade);
+        END LOOP;
+    END LOOP;
+    CLOSE c_fornec_transp;
+END;
+/
+
+SELECT 
+    a.servico,
+    a.nome_empresa,
+    a.classificacao
+FROM tb_fornecedor_alimentacao a
+WHERE (a.servico, a.classificacao) IN (
+    SELECT 
+        a2.servico,
+        MAX(a2.classificacao)
+    FROM tb_fornecedor_alimentacao a2
+    GROUP BY a2.servico
+)
+ORDER BY VALUE(a) DESC;
+-- 
+
+SELECT 
+    t.nome_empresa,
+    t.tipo_transporte,
+    f.veiculo,
+    f.quantidade
+FROM tb_fornecedor_transporte t,
+     TABLE(t.frotas) f
+WHERE (t.cnpj, f.quantidade) IN (
+    SELECT 
+        t2.cnpj,
+        MAX(f2.quantidade)
+    FROM tb_fornecedor_transporte t2,
+         TABLE(t2.frotas) f2
+    GROUP BY t2.cnpj
+)
+ORDER BY VALUE(t) DESC;
+
+SELECT 
+    e.tipo,
+    e.nome_empresa,
+    e.capacidade_maxima
+FROM tb_fornecedor_evento e
+WHERE (e.tipo, e.capacidade_maxima) IN (
+    SELECT 
+        e2.tipo,
+        MAX(e2.capacidade_maxima)
+    FROM tb_fornecedor_evento e2
+    GROUP BY e2.tipo
+)
+ORDER BY VALUE(e) DESC;
