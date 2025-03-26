@@ -88,19 +88,6 @@ ORDER BY VALUE(h) DESC;
 
 ----
 
-SELECT 
-    h.acomodacao,
-    h.nome_empresa,
-    VALUE(h).calc_faturamento_potencial() as fat_pots
-FROM tb_fornecedor_hospedagem h
-WHERE (h.acomodacao, VALUE(h).calc_faturamento_potencial()) IN (
-    SELECT 
-        h2.acomodacao,
-        MAX(VALUE(h2).calc_faturamento_potencial())
-    FROM tb_fornecedor_hospedagem h2
-    GROUP BY h2.acomodacao
-)
-ORDER BY VALUE(h) DESC;
 
 DECLARE
     v_forn_transp tp_fornecedor_transporte;
