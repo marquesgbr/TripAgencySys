@@ -224,3 +224,31 @@ WHERE r.tem_promo IS NOT NULL
 ORDER BY (p.preco_base - p.get_preco_final(r.tem_promo)) DESC;
 
 
+-- Consulta promoções ativas, seu uso e economia média por promoção
+SELECT 
+    p.codigo,
+    p.nome,
+    p.desconto,
+    COUNT(r.cliente) as total_uso,
+    AVG(pac.preco_base * (p.desconto/100)) as economia_media
+FROM tb_promocao p
+LEFT JOIN tb_reserva r ON REF(p) = r.tem_promo
+LEFT JOIN tb_pacote pac ON REF(pac) = r.pacote
+GROUP BY p.codigo, p.nome, p.desconto
+ORDER BY total_uso DESC;
+
+-- Análise de famílias por categoria de responsável
+SELECT 
+    c.nome as titular,
+    c.get_categoria() as categoria,
+    d.nome as dependente,
+    d.get_idade() as idade_dependente,
+    d.parentesco,
+
+    (SELECT COUNT(DISTINCT r.pacote) 
+     FROM tb_reserva r 
+     WHERE REF(c) = r.cliente) as total_pacotes_familia
+FROM tb_cliente c
+CROSS APPLY TABLE(c.dependentes) d
+ORDER BY VALUE(c) DESC, VALUE(d);  
+
