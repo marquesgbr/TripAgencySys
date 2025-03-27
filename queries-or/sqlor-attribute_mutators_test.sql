@@ -44,9 +44,9 @@ BEGIN
         WHERE h.cnpj = v_obj_hosp.cnpj;
         
         DBMS_OUTPUT.PUT_LINE('Hospedagem - ' || v_obj_hosp.nome_empresa || 
-                           CHR(10) || 'Telefone Premium: ' || v_novo_contato.telefone.numero ||
-                           CHR(10) || 'Email Premium: ' || v_novo_contato.email.email ||
-                           CHR(10));
+                            CHR(10) || 'Telefone Premium: ' || v_novo_contato.telefone.numero ||
+                            CHR(10) || 'Email Premium: ' || v_novo_contato.email.email ||
+                            CHR(10));
     END LOOP;
     
     -- Processa fornecedores de alimentacao
@@ -67,9 +67,9 @@ BEGIN
         WHERE a.cnpj = v_obj_alim.cnpj;
         
         DBMS_OUTPUT.PUT_LINE('Gastronomia - ' || v_obj_alim.nome_empresa || 
-                           CHR(10) || 'Telefone Gourmet: ' || v_novo_contato.telefone.numero ||
-                           CHR(10) || 'Email Gourmet: ' || v_novo_contato.email.email ||
-                           CHR(10));
+                            CHR(10) || 'Telefone Gourmet: ' || v_novo_contato.telefone.numero ||
+                            CHR(10) || 'Email Gourmet: ' || v_novo_contato.email.email ||
+                            CHR(10));
     END LOOP;
 END;
 /
@@ -186,14 +186,14 @@ BEGIN
         WHERE c.cpf = v_obj_cliente.cpf;
         
         DBMS_OUTPUT.PUT_LINE('Cliente: ' || v_obj_cliente.nome || 
-                           CHR(10) || 'Pontos adicionados: ' || cliente.total_bonus ||
-                           CHR(10) || 'Novo total: ' || v_obj_cliente.get_pontos() ||
-                           CHR(10));
+                            CHR(10) || 'Pontos adicionados: ' || cliente.total_bonus ||
+                            CHR(10) || 'Novo total: ' || v_obj_cliente.get_pontos() ||
+                            CHR(10));
     END LOOP;
 END;
 /
 
--- Atualização da frota apenas para fornecedores de transporte 
+-- (upsert_frota) Atualizacao da frota apenas para fornecedores de transporte 
 -- que participam de algum pacote 
 DECLARE
     v_obj_transp tp_fornecedor_transporte;
@@ -219,19 +219,20 @@ BEGIN
         WHERE t.cnpj = transp.cnpj;
 
         DBMS_OUTPUT.PUT_LINE('Fornecedor: ' || v_obj_transp.nome_empresa ||
-                           CHR(10) || 'Pacotes ativos: ' || transp.total_pacotes);
+                            CHR(10) || 'Capacidade antiga: ' || v_obj_transp.total_capac() ||
+                            CHR(10) || 'Pacotes ativos: ' || transp.total_pacotes);
         
-        -- Calcula quantidade baseada no número de pacotes
-        v_obj_transp.upsert_frota('Boeing 737', GREATEST(2, transp.total_pacotes));
-        v_obj_transp.upsert_frota('Airbus A320', CEIL(transp.total_pacotes/2));
+        -- Calcula quantidade baseada no numero de pacotes
+        v_obj_transp.upsert_frota('Boeing 737', GREATEST(25, 20*transp.total_pacotes));
+        v_obj_transp.upsert_frota('Airbus A320', CEIL(transp.total_pacotes*15));
         
         UPDATE tb_fornecedor_transporte t
         SET t = v_obj_transp
         WHERE t.cnpj = v_obj_transp.cnpj;
         
         DBMS_OUTPUT.PUT_LINE('Frota atualizada:' ||
-                           CHR(10) || 'Nova capacidade total: ' || v_obj_transp.total_capac() ||
-                           CHR(10));
+                            CHR(10) || 'Nova capacidade total: ' || v_obj_transp.total_capac() ||
+                            CHR(10));
     END LOOP;
 END;
 /

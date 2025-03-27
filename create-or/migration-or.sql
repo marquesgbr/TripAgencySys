@@ -519,34 +519,29 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor_transporte AS
     OVERRIDING MAP MEMBER FUNCTION total_capac RETURN INT IS
         v_total_vehic INT := 0;
     BEGIN
-        SELECT SUM(f.quantidade) INTO v_total_vehic
-        FROM TABLE(SELECT t.frotas
-            FROM TB_FORNECEDOR_TRANSPORTE t
-            WHERE t.cnpj = self.cnpj) f;
-
+        FOR i IN 1..self.frotas.COUNT LOOP
+            v_total_vehic := v_total_vehic + self.frotas(i).quantidade;
+        END LOOP;
         RETURN v_total_vehic;
     END;
 
     MEMBER PROCEDURE upsert_frota(v_veiculo VARCHAR2, v_quantidade INT) IS
-        v_exists NUMBER;
+         v_found BOOLEAN := FALSE;
     BEGIN
-        SELECT COUNT(*) INTO v_exists
-        FROM TABLE(SELECT t.frotas
-            FROM TB_FORNECEDOR_TRANSPORTE t
-            WHERE t.cnpj = self.cnpj) f
-        WHERE f.veiculo = v_veiculo;
-
-        IF v_exists > 0 THEN
-            UPDATE TABLE(SELECT t.frotas
-                FROM TB_FORNECEDOR_TRANSPORTE t
-                WHERE t.cnpj = self.cnpj) f
-            SET f.quantidade = f.quantidade + v_quantidade
-            WHERE f.veiculo = v_veiculo;
-        ELSE
-            INSERT INTO TABLE(SELECT t.frotas
-                FROM TB_FORNECEDOR_TRANSPORTE t
-                WHERE t.cnpj = self.cnpj)
-            VALUES (tp_frota(v_veiculo, v_quantidade));
+        
+        -- Procura e atualiza se existir
+        FOR i IN 1..self.frotas.COUNT LOOP
+            IF self.frotas(i).veiculo = v_veiculo THEN
+                self.frotas(i).quantidade := self.frotas(i).quantidade + v_quantidade;
+                v_found := TRUE;
+                EXIT;
+            END IF;
+        END LOOP;
+        
+        -- Adiciona novo se não existir
+        IF NOT v_found THEN
+            self.frotas.EXTEND;
+            self.frotas(self.frotas.LAST) := tp_frota(v_veiculo, v_quantidade);
         END IF;
     END;
 END;
