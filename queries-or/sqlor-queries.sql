@@ -1,35 +1,44 @@
 
--- Gerar um relatorio de clientes exibindo seu todo historico de reservas e o total gasto 
+-- Mostrar historico de reservas canceladas de clientes 
+-- e o que foi deixado de gastar (total_ngasto), agrupando por categoria
 SELECT 
     c.nome as cliente,
-    c.get_categoria() as categoria_cliente,
-    SUM(p.get_preco_final(r.tem_promo)) as total_gasto,
+    c.get_categoria() as categoria,
+    SUM(p.get_preco_final(r.tem_promo)) as total_ngasto,
     LISTAGG(p.nome, ', ') 
-    WITHIN GROUP (ORDER BY r.data_hora_reserva) as historico_pacotes
+    WITHIN GROUP (ORDER BY VALUE(r)) as historico_pacotes
+FROM tb_cliente c
+LEFT JOIN tb_reserva r ON REF(c) = r.cliente
+LEFT JOIN tb_pacote p ON REF(p) = r.pacote
+WHERE r.status = 'Cancelado'
+GROUP BY c.nome, categoria
+ORDER BY total_ngasto DESC NULLS LAST;
+
+
+-- Relatorio geral de clientes:
+-- sumariza reservas ativas totais, dependentes, indicados, categoria e pontos por cliente
+SELECT 
+    c.nome,
+    c.get_categoria() as categoria,
+    c.get_pontos() as pontos_atuais,
+    COUNT(DISTINCT r.pacote) as total_pacotes,
+    SUM(p.get_preco_final(r.tem_promo)) as valor_total_gasto,
+
+    (SELECT COUNT(VALUE(d)) 
+     FROM tb_cliente c3, TABLE(c3.dependentes) d
+     WHERE c3.cpf = c.cpf) as total_dependentes,
+
+    (SELECT LISTAGG(VALUE(i).nome, ', ') 
+     WITHIN GROUP (ORDER BY VALUE(i) DESC)
+     FROM tb_cliente c2, TABLE(c2.clientes_indicados) i 
+     WHERE c2.cpf = c.cpf) as lista_indicados
+
 FROM tb_cliente c
 LEFT JOIN tb_reserva r ON REF(c) = r.cliente
 LEFT JOIN tb_pacote p ON REF(p) = r.pacote
 WHERE r.status != 'Cancelado'
-GROUP BY c.nome, c.get_categoria()
-ORDER BY total_gasto DESC NULLS LAST;
-
-
--- Relatorio de clientes: sumariza numero de pacotes, dependentes, indicados e categoria por cliente
-SELECT 
-    c.nome,
-    c.pontos_fidelidade,
-    COUNT(DISTINCT r.pacote) as total_pacotes,
-    (SELECT COUNT(VALUE(d)) 
-     FROM tb_cliente c2, TABLE(c2.dependentes) d 
-     WHERE c2.cpf = c.cpf
-    ) as total_dependentes,
-    c.count_indicados() as total_indicados,
-    c.get_categoria() as categoria
-FROM tb_cliente c
-LEFT JOIN tb_reserva r ON REF(c) = r.cliente
-GROUP BY c.nome, c.cpf, c.pontos_fidelidade, c.get_categoria(), c.count_indicados()
-ORDER BY c.pontos_fidelidade DESC;
-
+GROUP BY c.nome, pontos_atuais, categoria, c.cpf
+ORDER BY pontos_atuais DESC; 
 
 -------------
 -- Gerar um relatório de Fornecedor que exibe para cada fornecedor os Pacotes que ele fornece algum serviço para

@@ -29,7 +29,7 @@ INSERT INTO tb_cliente VALUES (
     )
 );
 
-INSERT INTO tb_cliente VALUES (tp_cliente('23456789012', 'Maria Santos', tp_email('msantos.prof@outlook.com'), tp_telefone('351912345678'), SYSDATE-10, 150, NULL, tp_possui_dep(tp_dependente('Miguel Santos', TO_DATE('07-08-2009', 'DD-MM-YYYY'), 'Filho')), tp_clientes_indicados()));
+INSERT INTO tb_cliente VALUES (tp_cliente('23456789012', 'Maria Santos', tp_email('msantos.prof@outlook.com'), tp_telefone('351912345678'), SYSDATE-10, 1500, NULL, tp_possui_dep(tp_dependente('Miguel Santos', TO_DATE('07-08-2009', 'DD-MM-YYYY'), 'Filho')), tp_clientes_indicados()));
 INSERT INTO tb_cliente VALUES (tp_cliente('34567890123', 'Pedro Costa', tp_email('pedro.costa@yahoo.fr'), tp_telefone('33745123456'), SYSDATE-365, 200, NULL, tp_possui_dep(), tp_clientes_indicados())); 
 
 -- indicados pelos anteriores
@@ -39,7 +39,7 @@ INSERT INTO tb_cliente VALUES (tp_cliente('56789012345', 'Carlos Lima', tp_email
 INSERT INTO TABLE(SELECT c.clientes_indicados FROM tb_cliente c WHERE c.cpf = '23456789012') VALUES ((SELECT REF(c) FROM tb_cliente c WHERE c.cpf = '56789012345'));
 
 -- indicado por anteriores
-INSERT INTO tb_cliente VALUES (tp_cliente('67890123456', 'Mariana Costa', tp_email('mari.costa@uol.com.br'), tp_telefone('5521977665544'), SYSDATE-40, 25, (SELECT REF(c) FROM tb_cliente c WHERE c.cpf = '45678901234'), tp_possui_dep(), tp_clientes_indicados())); 
+INSERT INTO tb_cliente VALUES (tp_cliente('67890123456', 'Mariana Costa', tp_email('mari.costa@uol.com.br'), tp_telefone('5521977665544'), SYSDATE-40, 550, (SELECT REF(c) FROM tb_cliente c WHERE c.cpf = '45678901234'), tp_possui_dep(), tp_clientes_indicados())); 
 INSERT INTO TABLE(SELECT c.clientes_indicados FROM tb_cliente c WHERE c.cpf = '45678901234') VALUES ((SELECT REF(c) FROM tb_cliente c WHERE c.cpf = '67890123456'));
 
 -- adicionais
