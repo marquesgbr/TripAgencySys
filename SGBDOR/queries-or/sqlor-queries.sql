@@ -1,6 +1,6 @@
 -- Alem das queries, aqui sao testadas/usadas todas as functions de migration-or:
 --      get_idade()
---      compare_idade() (Order -> uso implicito para ordenar tp_dependente)
+--      compare_idade() (Order -> teste separado no final)
 --      get_pontos() (Map -> uso explicito em select e implicito para agrupar/ordenar tp_cliente)
 --      count_indicados()
 --      get_categoria()
@@ -256,5 +256,32 @@ SELECT
      WHERE REF(c) = r.cliente) as total_pacotes_familia
 FROM tb_cliente c
 CROSS APPLY TABLE(c.dependentes) d
-ORDER BY VALUE(c) DESC, VALUE(d);  
+ORDER BY VALUE(c) DESC, idade_dependente;  
 
+
+
+-- Teste de compare_idade()
+DECLARE
+    v_dep1 tp_dependente;
+    v_dep2 tp_dependente;
+    v_result NUMBER;
+BEGIN
+    -- Cria dois dependentes com idades diferentes
+    v_dep1 := tp_dependente('João Jr', TO_DATE('2015-01-01', 'YYYY-MM-DD'), 'Afilhado');
+    v_dep2 := tp_dependente('Maria Jr', TO_DATE('2018-01-01', 'YYYY-MM-DD'), 'Sobrinha');
+    
+    -- Testa o método ORDER
+    v_result := v_dep1.compare_idade(v_dep2);
+    
+    DBMS_OUTPUT.PUT_LINE('Comparando idades:');
+    DBMS_OUTPUT.PUT_LINE(v_dep1.nome || ' (' || v_dep1.get_idade() || ' anos)');
+    DBMS_OUTPUT.PUT_LINE(v_dep2.nome || ' (' || v_dep2.get_idade() || ' anos)');
+    DBMS_OUTPUT.PUT_LINE('Resultado: ' || 
+        CASE v_result
+            WHEN -1 THEN v_dep1.nome || ' é mais novo'
+            WHEN 0 THEN 'Mesma idade'
+            WHEN 1 THEN v_dep1.nome || ' é mais velho'
+        END
+    );
+END;
+/
