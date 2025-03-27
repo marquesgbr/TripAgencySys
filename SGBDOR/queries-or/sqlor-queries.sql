@@ -84,7 +84,7 @@ WHERE
 
 
 -- Fornecedores de hospedagem que têm o maior faturamento potencial
--- em cada categoria de acomodação. 
+-- em cada categoria de acomodação, ordenados (desc) pela quantidade hospedes que podem atender
 SELECT 
     h.acomodacao,
     h.nome_empresa,
