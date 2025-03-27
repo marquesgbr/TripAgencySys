@@ -358,6 +358,14 @@ CREATE OR REPLACE TYPE BODY tp_fornecedor AS
 
     FINAL MEMBER PROCEDURE add_contato(novo IN tp_contato) IS
     BEGIN
+        FOR i IN 1..self.contatos.COUNT LOOP
+            IF self.contatos(i).telefone.numero = novo.telefone.numero OR
+                self.contatos(i).email.email = novo.email.email 
+            THEN
+                RAISE_APPLICATION_ERROR(-20004, 'Já existe um contato igual a esse.');
+            END IF;
+        END LOOP;
+
         IF self.contatos.COUNT < self.contatos.LIMIT THEN
             self.contatos.EXTEND;
             self.contatos(self.contatos.LAST) := novo;

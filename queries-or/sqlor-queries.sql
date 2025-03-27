@@ -245,7 +245,7 @@ SELECT
     d.get_idade() as idade_dependente,
     d.parentesco,
 
-    (SELECT COUNT(DISTINCT r.pacote) 
+    (SELECT COUNT(r.pacote) 
      FROM tb_reserva r 
      WHERE REF(c) = r.cliente) as total_pacotes_familia
 FROM tb_cliente c
