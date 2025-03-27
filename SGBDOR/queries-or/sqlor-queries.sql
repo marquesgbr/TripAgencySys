@@ -1,3 +1,15 @@
+-- Alem das queries, aqui sao testadas/usadas todas as functions de migration-or:
+--      get_idade()
+--      compare_idade() (Order -> uso implicito para ordenar tp_dependente)
+--      get_pontos() (Map -> uso explicito em select e implicito para agrupar/ordenar tp_cliente)
+--      count_indicados()
+--      get_categoria()
+--      get_preco_final()
+--      map_data_hora() (Map -> uso implicito para ordenar tp_reserva)
+--      calc_faturamento_potencial()
+--      total_capac() (Map -> uso implicito para ordenar tp_fornecedor; para todos os tipos)
+
+
 
 -- Mostrar histórico de reservas canceladas de clientes 
 -- e o que foi deixado de gastar (total_ngasto), agrupando por categoria
@@ -28,6 +40,7 @@ SELECT
      FROM tb_cliente c2, TABLE(c2.dependentes) d
      WHERE c2.cpf = c.cpf) as total_dependentes,
 
+    c.count_indicados() as num_indicados,
     (SELECT LISTAGG(VALUE(i).nome, ', ') 
      WITHIN GROUP (ORDER BY VALUE(i) DESC)
      FROM tb_cliente c3, TABLE(c3.clientes_indicados) i 
@@ -37,7 +50,7 @@ FROM tb_cliente c
 LEFT JOIN tb_reserva r ON REF(c) = r.cliente
 LEFT JOIN tb_pacote p ON REF(p) = r.pacote
 WHERE r.status != 'Cancelado'
-GROUP BY c.nome, pontos_atuais, categoria, c.cpf
+GROUP BY c.nome, pontos_atuais, categoria, num_indicados, c.cpf
 ORDER BY pontos_atuais DESC; 
 
 

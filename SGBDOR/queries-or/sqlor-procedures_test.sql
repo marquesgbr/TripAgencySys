@@ -1,5 +1,4 @@
--- Aqui serao testados os metodos que modificam algum atributo de um objeto 
--- Metodos de migration-or:
+-- Aqui serao testados apenas os procedures de migration-or:
 --      add_contato(tp_contato)
 --      rem_contato(tp_telefone)
 --      add_pontos(number)
