@@ -75,7 +75,7 @@ END;
 /
 
 
--- Remove um contato de fornecedores (hospedagem e alimentacao) com classificacao abaixo de 3.0
+-- (rem_contato) Remove um contato de fornecedores (hospedagem e alimentacao) com classificacao abaixo de 3.0
 DECLARE
     v_fornec_hosp tp_fornecedor_hospedagem;
     v_fornec_alim tp_fornecedor_alimentacao;
@@ -144,7 +144,7 @@ END;
 /
 
 
--- (add_pontos) Bonificação de pontos baseada no valor dos pacotes reservados
+-- (add_pontos) Bonificacao de pontos baseada no valor dos pacotes reservados
 DECLARE
     v_obj_cliente tp_cliente;
     v_bonus_points NUMBER;
@@ -188,6 +188,49 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('Cliente: ' || v_obj_cliente.nome || 
                            CHR(10) || 'Pontos adicionados: ' || cliente.total_bonus ||
                            CHR(10) || 'Novo total: ' || v_obj_cliente.get_pontos() ||
+                           CHR(10));
+    END LOOP;
+END;
+/
+
+-- Atualização da frota apenas para fornecedores de transporte 
+-- que participam de algum pacote 
+DECLARE
+    v_obj_transp tp_fornecedor_transporte;
+    
+    CURSOR c_transp_com_pacotes IS
+        SELECT 
+            t.cnpj, 
+            COUNT(DISTINCT p.codigo) AS total_pacotes
+        FROM tb_fornecedor_transporte t
+        JOIN tb_possui pos ON REF(t) = pos.fornecedor
+        JOIN tb_pacote p ON REF(p) = pos.pacote
+        JOIN tb_reserva r ON REF(p) = r.pacote
+        WHERE t.tipo_transporte = 'Aereo'
+        GROUP BY t.cnpj
+        HAVING COUNT(DISTINCT p.codigo) > 0;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Atualizando frota apenas para fornecedores com pacotes ativos...');
+
+    FOR transp IN c_transp_com_pacotes LOOP
+
+        SELECT VALUE(t) INTO v_obj_transp
+        FROM tb_fornecedor_transporte t
+        WHERE t.cnpj = transp.cnpj;
+
+        DBMS_OUTPUT.PUT_LINE('Fornecedor: ' || v_obj_transp.nome_empresa ||
+                           CHR(10) || 'Pacotes ativos: ' || transp.total_pacotes);
+        
+        -- Calcula quantidade baseada no número de pacotes
+        v_obj_transp.upsert_frota('Boeing 737', GREATEST(2, transp.total_pacotes));
+        v_obj_transp.upsert_frota('Airbus A320', CEIL(transp.total_pacotes/2));
+        
+        UPDATE tb_fornecedor_transporte t
+        SET t = v_obj_transp
+        WHERE t.cnpj = v_obj_transp.cnpj;
+        
+        DBMS_OUTPUT.PUT_LINE('Frota atualizada:' ||
+                           CHR(10) || 'Nova capacidade total: ' || v_obj_transp.total_capac() ||
                            CHR(10));
     END LOOP;
 END;
