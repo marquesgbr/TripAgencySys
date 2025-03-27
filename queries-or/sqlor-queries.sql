@@ -1,5 +1,5 @@
 
--- Mostrar historico de reservas canceladas de clientes 
+-- Mostrar histórico de reservas canceladas de clientes 
 -- e o que foi deixado de gastar (total_ngasto), agrupando por categoria
 SELECT 
     c.nome as cliente,
@@ -15,7 +15,7 @@ GROUP BY c.nome, categoria
 ORDER BY total_ngasto DESC NULLS LAST;
 
 
--- Relatorio geral de clientes:
+-- Relatório geral de clientes:
 -- sumariza reservas ativas totais, dependentes, indicados, categoria e pontos por cliente
 SELECT 
     c.nome,
@@ -25,13 +25,13 @@ SELECT
     SUM(p.get_preco_final(r.tem_promo)) as valor_total_gasto,
 
     (SELECT COUNT(VALUE(d)) 
-     FROM tb_cliente c3, TABLE(c3.dependentes) d
-     WHERE c3.cpf = c.cpf) as total_dependentes,
+     FROM tb_cliente c2, TABLE(c2.dependentes) d
+     WHERE c2.cpf = c.cpf) as total_dependentes,
 
     (SELECT LISTAGG(VALUE(i).nome, ', ') 
      WITHIN GROUP (ORDER BY VALUE(i) DESC)
-     FROM tb_cliente c2, TABLE(c2.clientes_indicados) i 
-     WHERE c2.cpf = c.cpf) as lista_indicados
+     FROM tb_cliente c3, TABLE(c3.clientes_indicados) i 
+     WHERE c3.cpf = c.cpf) as lista_indicados
 
 FROM tb_cliente c
 LEFT JOIN tb_reserva r ON REF(c) = r.cliente
@@ -39,6 +39,7 @@ LEFT JOIN tb_pacote p ON REF(p) = r.pacote
 WHERE r.status != 'Cancelado'
 GROUP BY c.nome, pontos_atuais, categoria, c.cpf
 ORDER BY pontos_atuais DESC; 
+
 
 -------------
 -- Gerar um relatório de Fornecedor que exibe para cada fornecedor os Pacotes que ele fornece algum serviço para
@@ -81,6 +82,9 @@ WHERE
 
 ----------------
 
+
+-- Fornecedores de hospedagem que têm o maior faturamento potencial
+-- em cada categoria de acomodação. 
 SELECT 
     h.acomodacao,
     h.nome_empresa,
@@ -95,48 +99,35 @@ WHERE (h.acomodacao, VALUE(h).calc_faturamento_potencial()) IN (
 )
 ORDER BY VALUE(h) DESC;
 
-----
 
-
-DECLARE
-    v_forn_transp tp_fornecedor_transporte;
-    v_frota tp_frota;
-    v_nome VARCHAR2(100);
-    CURSOR c_fornec_transp IS SELECT VALUE(t) FROM tb_fornecedor_transporte t;
-BEGIN
-    OPEN c_fornec_transp;
-    LOOP
-        FETCH c_fornec_transp INTO v_forn_transp;
-        EXIT WHEN c_fornec_transp%NOTFOUND;
-        
-        -- Print the fornecedor_transporte details
-        DBMS_OUTPUT.PUT_LINE('Fornecedor: ' || v_forn_transp.tipo_transporte);
-        
-        -- Iterate over the frotas collection
-        FOR i IN 1 .. v_forn_transp.frotas.COUNT LOOP
-            v_frota := v_forn_transp.frotas(i);
-            DBMS_OUTPUT.PUT_LINE('  Veículo: ' || v_frota.veiculo || ', Quantidade: ' || v_frota.quantidade);
-        END LOOP;
-    END LOOP;
-    CLOSE c_fornec_transp;
-END;
-/
-
+-- Encontra estabelecimentos de alta classificação (>4) e sua participação em pacotes 
+-- com preço base alto (>1000) mostrando a média de preço dos pacotes que 
+-- atendem e quantos clientes já os buscaram (inclui reservas canceladas)
 SELECT 
-    a.servico,
     a.nome_empresa,
-    a.classificacao
+    a.servico,
+    a.classificacao,
+    COUNT(DISTINCT p.codigo) as total_pacotes_premium,
+    ROUND(AVG(p.preco_base), 2) as ticket_medio_pacote,
+    COUNT(DISTINCT r.cliente) as total_clientes_atendidos,
+    (SELECT LISTAGG(DEREF(r2.cliente).nome, ', ')
+     WITHIN GROUP (ORDER BY DEREF(r2.cliente).get_pontos() DESC)
+     FROM tb_reserva r2
+     WHERE REF(p) = r2.pacote
+     FETCH FIRST 3 ROWS ONLY) as top3_clientes
 FROM tb_fornecedor_alimentacao a
-WHERE (a.servico, a.classificacao) IN (
-    SELECT 
-        a2.servico,
-        MAX(a2.classificacao)
-    FROM tb_fornecedor_alimentacao a2
-    GROUP BY a2.servico
-)
-ORDER BY VALUE(a) DESC;
--- 
+JOIN tb_possui pos ON REF(a) = pos.fornecedor
+JOIN tb_pacote p ON REF(p) = pos.pacote
+LEFT JOIN tb_reserva r ON REF(p) = r.pacote
+WHERE a.classificacao > 4
+AND p.preco_base > 1000
+GROUP BY a.nome_empresa, a.servico, a.classificacao, REF(p)
+HAVING COUNT(DISTINCT r.cliente) > 0
+ORDER BY a.classificacao DESC, total_clientes_atendidos DESC;
 
+
+-- Encontra, para cada fornecedor de transporte, o veículo em
+-- maior quantidade em sua frota
 SELECT 
     t.nome_empresa,
     t.tipo_transporte,
@@ -154,19 +145,21 @@ WHERE (t.cnpj, f.quantidade) IN (
 )
 ORDER BY VALUE(t) DESC;
 
+
+-- Mostra distribuição de capacidade por tipo de evento, destacando maior 
+-- e menor espaço de cada tipo
 SELECT 
     e.tipo,
-    e.nome_empresa,
-    e.capacidade_maxima
+    COUNT(*) as total_espacos,
+    MIN(e.capacidade_maxima) as menor_espaco,
+    MAX(e.capacidade_maxima) as maior_espaco,
+    ROUND(AVG(e.capacidade_maxima)) as media_capacidade,
+    LISTAGG(e.nome_empresa, ', ') 
+    WITHIN GROUP (ORDER BY VALUE(e) DESC) as espacos_ordenados
 FROM tb_fornecedor_evento e
-WHERE (e.tipo, e.capacidade_maxima) IN (
-    SELECT 
-        e2.tipo,
-        MAX(e2.capacidade_maxima)
-    FROM tb_fornecedor_evento e2
-    GROUP BY e2.tipo
-)
-ORDER BY VALUE(e) DESC;
+GROUP BY e.tipo
+HAVING COUNT(*) > 1
+ORDER BY media_capacidade DESC;
 
 
 -- Atividades que têm o tipo 'Cultural' e que têm mais de um tipo
@@ -188,7 +181,8 @@ WHERE
     AND (SELECT COUNT(*) FROM TABLE(a.tipo) t) > 1
 ;
 
--- Veículos de cada empresa de transportes 
+-- Frotas de cada empresa de transportes e sua capacidade total
+-- Ordenadas da que possui maior quantidade de veÍculos para a menor 
 
 SELECT
     ft.nome_empresa,
@@ -202,8 +196,7 @@ FROM
 WHERE
     f.quantidade > 0
 ORDER BY
-    ft.nome_empresa,
-    f.veiculo;
+    VALUE(ft) DESC, ft.nome_empresa, f.veiculo;
 
 
 -- Relatório das promoções que cada cliente teve nos pacotes que ele comprou e quanto ele economizou
