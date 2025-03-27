@@ -6,20 +6,7 @@
 --      upsert_frota(VARCHAR2, INT) 
 
 
--- Teste de insercao de um novo tipo de frota para algum fornecedor de transporte  
--- DECLARE
---     v_fornecedor tp_fornecedor_transporte;
--- BEGIN
---     SELECT VALUE(f) INTO v_fornecedor 
---     FROM tb_fornecedor_transporte f 
---     WHERE ROWNUM = 1;
-    
---     v_fornecedor.upsert_frota('Novo Veículo', 5);
--- END;
--- /
-
-
--- Adicionar contatos dedicados para fornecedores 5 estrelas
+-- (add_contato) Adicionar contatos dedicados para fornecedores 5 estrelas
 DECLARE
     v_fornec_hosp tp_fornecedor_hospedagem;
     v_fornec_alim tp_fornecedor_alimentacao;
@@ -62,7 +49,7 @@ BEGIN
                            CHR(10));
     END LOOP;
     
-    -- Processa fornecedores de alimentação
+    -- Processa fornecedores de alimentacao
     FOR alim_rec IN c_alim_favorito LOOP
         v_obj_alim := alim_rec.obj_alim;
         
@@ -88,8 +75,7 @@ END;
 /
 
 
-
--- Remove um contato de fornecedores (hospedagem e alimentação) com classificação abaixo de 3.0
+-- Remove um contato de fornecedores (hospedagem e alimentacao) com classificacao abaixo de 3.0
 DECLARE
     v_fornec_hosp tp_fornecedor_hospedagem;
     v_fornec_alim tp_fornecedor_alimentacao;
@@ -132,7 +118,7 @@ BEGIN
         END;
     END LOOP;
     
-    -- Processa fornecedores de alimentação
+    -- Processa fornecedores de alimentacao
     FOR alim_rec IN c_alim_baixa_class LOOP
         v_obj_alim := alim_rec.obj_alim;
         BEGIN
@@ -156,3 +142,54 @@ BEGIN
     END LOOP;
 END;
 /
+
+
+-- (add_pontos) Bonificação de pontos baseada no valor dos pacotes reservados
+DECLARE
+    v_obj_cliente tp_cliente;
+    v_bonus_points NUMBER;
+    
+    CURSOR c_clientes_ativos IS
+        WITH pontos_por_reserva AS (
+            SELECT 
+                c.cpf,
+                VALUE(c) as obj_cliente,
+                p.preco_base,
+                CASE 
+                    WHEN p.preco_base >= 1500 THEN 100
+                    ELSE 50
+                END as pontos_ganhos
+            FROM tb_cliente c
+            JOIN tb_reserva r ON REF(c) = r.cliente
+            JOIN tb_pacote p ON REF(p) = r.pacote
+            WHERE r.status != 'Cancelado'
+        )
+        SELECT 
+            obj_cliente,
+            SUM(pontos_ganhos) as total_bonus
+        FROM pontos_por_reserva
+        GROUP BY cpf, obj_cliente
+        HAVING SUM(pontos_ganhos) > 0;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Iniciando programa de bonificação por valor de pacote...');
+    DBMS_OUTPUT.PUT_LINE('Regras: 100 pontos para pacotes >= R$1500');
+    DBMS_OUTPUT.PUT_LINE('        50 pontos para pacotes < R$1500');
+    DBMS_OUTPUT.PUT_LINE('----------------------------------------');
+    
+    FOR cliente IN c_clientes_ativos LOOP
+        v_obj_cliente := cliente.obj_cliente;
+        
+        v_obj_cliente.add_pontos(cliente.total_bonus);
+        
+        UPDATE tb_cliente c
+        SET c = v_obj_cliente
+        WHERE c.cpf = v_obj_cliente.cpf;
+        
+        DBMS_OUTPUT.PUT_LINE('Cliente: ' || v_obj_cliente.nome || 
+                           CHR(10) || 'Pontos adicionados: ' || cliente.total_bonus ||
+                           CHR(10) || 'Novo total: ' || v_obj_cliente.get_pontos() ||
+                           CHR(10));
+    END LOOP;
+END;
+/
+
