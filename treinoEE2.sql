@@ -1,4 +1,3 @@
--- SQLBook: Code
 
 ------ EE2 23.2
 -- Q1 (nao coloquei os atributos triviais, aqui so tem oq eh importante)
@@ -317,22 +316,18 @@ SELECT i.nome, DEREF(i.empresa).nome as NomeEmpresa
 FROM TABLE (
     SELECT d.ingredientes 
     FROM tb_doces d WHERE d.nome = 'Brownie Recheado'
-    ) i;
+) i;
 
-CREATE TABLE tb_pedido OF tp_pedido (
-    codigo_pedido PRIMARY KEY, 
-    valor NOT NULL, 
-    numero_itens NOT NULL
-);
 
+
+
+
+-- b) Qual o doce mais vendido pela doceria? Informe o seu código, nome e quantidade vendida.
 CREATE TABLE tb_contem OF tp_contem (
     pedido WITH ROWID REFERENCES tb_pedido, 
     doce WITH ROWID REFERENCES tb_doce, 
     quantidade_doces NOT NULL
 );
-
-
--- b) Qual o doce mais vendido pela doceria? Informe o seu código, nome e quantidade vendida.
 
 SELECT 
     DEREF(c.doce).codigo_doce as CodigoDoce, 
@@ -344,3 +339,95 @@ HAVING SUM(c.quantidade_doces) = (
     SELECT MAX(SUM(c.quantidade_doces)) FROM tb_contem c GROUP BY c.doce
 );
 
+
+
+-- Infos para c) e d) da 22.2-Q3-L3
+CREATE OR REPLACE TYPE tp_hora_aula AS OBJECT( 
+    dia_semana VARCHAR(3), 
+    hora_inicio INT, 
+    hora_fim INT);
+/
+
+CREATE OR REPLACE TYPE tp_va_hora_aula AS VARRAY(5) OF tp_hora_aula;
+/
+
+CREATE OR REPLACE TYPE tp_disciplina AS OBJECT(
+    cod_disc  VARCHAR(5), 
+    nome_disc VARCHAR(50), 
+    objetivo  VARCHAR(200), 
+    horarios tp_va_hora_aula,
+    MEMBER FUNCTION checa_choque_horario(cod_disc_check VARCHAR) RETURN VARCHAR);
+/
+
+CREATE OR REPLACE TYPE tp_nota AS OBJECT(nota NUMBER(4,2));
+/
+
+CREATE OR REPLACE TYPE tp_va_notas AS VARRAY(6) OF tp_nota;
+/
+
+CREATE OR REPLACE TYPE tp_cursa_disc AS OBJECT (disc_ref REF tp_disciplina, notas tp_va_notas);
+/
+
+CREATE OR REPLACE TYPE tp_nt_bruxo_cursa AS TABLE OF tp_cursa_disc;
+/
+
+CREATE OR REPLACE TYPE tp_bruxo AS OBJECT(
+    cod_bruxo VARCHAR(5), 
+    nome_bruxo VARCHAR(50), 
+    idade INTEGER, 
+    casa  VARCHAR(15), 
+    cursa_disc tp_nt_bruxo_cursa, 
+    MEMBER PROCEDURE add_nota(cod_disc_up VARCHAR, nota NUMBER)
+);
+/
+
+-- c) Escreva o TYPE BODY de tp_bruxo, escrevendo a função add_nota, que deve 
+-- adicionar uma nota de uma disciplina no histórico do aluno.
+CREATE OR REPLACE TYPE BODY tp_bruxo AS
+    MEMBER PROCEDURE add_nota(cod_disc_up VARCHAR, nota NUMBER) IS
+        v_notas_aluno tp_va_notas;
+        v_len INT;
+    BEGIN
+        SELECT cd.notas INTO v_notas_aluno
+        FROM tb_bruxo b, TABLE(b.cursa_disc) cd
+        WHERE b.cod_bruxo = SELF.cod_bruxo AND
+        cd.disc_ref.cod_disc = cod_disc_up;
+        
+        v.notas_aluno.EXTEND;
+        v_len := v.notas_aluno.LENGTH;
+        v.notas_aluno(v_len) := nota;
+
+        UPDATE TABLE(
+            SELECT b.cursa_disc FROM tb_bruxo b WHERE b.cod_bruxo = SELF.cod_bruxo
+        ) 
+        SET notas = v_notas_aluno
+        WHERE DEREF(disc_ref).cod_disc = cod_disc;
+    END;
+END;
+
+
+-- d) Escreva o TYPE BODY de tp_disciplina, escrevendo a 
+-- função checa_choque_horario, que recebe outra disciplina como parâmetro e 
+-- retorna ‘S’ se houver choque de horário e ‘N’ se não houver.
+CREATE OR REPLACE TYPE BODY tp_disciplina AS
+    MEMBER FUNCTION checa_choque_horario(cod_disc_check VARCHAR) RETURN VARCHAR IS
+        v_horarios_outra tp_va_hora_aula;
+    BEGIN
+        SELECT d.horarios INTO v_horarios_outra
+        FROM tb_disciplina d WHERE d.cod_disc = cod_disc_check;
+
+        FOR i in 1..SELF.horarios.LENGTH LOOP
+            FOR j in 1..v_horarios_outra.LENGTH LOOP
+                IF SELF.horarios(i).dia_semana = v_horarios_outra(j).dia_semana THEN
+                    IF (SELF.horarios(i).hora_inicio < v_horarios_outra(j).hora_fim) AND
+                        (SELF.horarios(i).hora_fim > v_horarios_outra(j).hora_inicio) THEN
+                        RETURN 'S';
+                    END IF;
+                END IF;
+            END LOOP;
+        END LOOP;
+
+        RETURN 'N';
+
+    END;
+END;
