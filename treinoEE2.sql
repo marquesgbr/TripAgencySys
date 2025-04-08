@@ -301,7 +301,8 @@ END;
 
 -- f) Crie uma função que, dado o CPF do cliente, retorne quanto ele gastou, levando em 
 -- conta todas as compras que ele fez.CREATE OR REPLACE 
-FUNCTION calcularGasto(cpf IN VARCHAR) RETURN NUMBER IS
+CREATE OR REPLACE FUNCTION calcularGasto(cpf IN VARCHAR) RETURN NUMBER IS
+    v_total_gasto NUMBER := 0;
 BEGIN
     SELECT SUM(DEREF(c.pedido).valor)
     INTO v_total_gasto
@@ -334,11 +335,12 @@ CREATE TABLE tb_contem OF tp_contem (
 -- b) Qual o doce mais vendido pela doceria? Informe o seu código, nome e quantidade vendida.
 
 SELECT 
-    DEREF(c.doce).codigo as CodigoDoce, 
+    DEREF(c.doce).codigo_doce as CodigoDoce, 
     DEREF(c.doce).nome as NomeDoce,
     SUM(c.quantidade_doces) as QuantidadeVendida 
 FROM tb_contem c 
-GROUP BY c.doce  
+GROUP BY CodigoDoce, NomeDoce
 HAVING SUM(c.quantidade_doces) = (
     SELECT MAX(SUM(c.quantidade_doces)) FROM tb_contem c GROUP BY c.doce
 );
+
