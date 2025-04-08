@@ -394,7 +394,7 @@ CREATE OR REPLACE TYPE BODY tp_bruxo AS
         cd.disc_ref.cod_disc = cod_disc_up;
         
         v.notas_aluno.EXTEND;
-        v_len := v.notas_aluno.LENGTH;
+        v_len := v.notas_aluno.COUNT;
         v.notas_aluno(v_len) := nota;
 
         UPDATE TABLE(
@@ -416,8 +416,8 @@ CREATE OR REPLACE TYPE BODY tp_disciplina AS
         SELECT d.horarios INTO v_horarios_outra
         FROM tb_disciplina d WHERE d.cod_disc = cod_disc_check;
 
-        FOR i in 1..SELF.horarios.LENGTH LOOP
-            FOR j in 1..v_horarios_outra.LENGTH LOOP
+        FOR i in 1..SELF.horarios.COUNT LOOP
+            FOR j in 1..v_horarios_outra.COUNT LOOP
                 IF SELF.horarios(i).dia_semana = v_horarios_outra(j).dia_semana THEN
                     IF (SELF.horarios(i).hora_inicio < v_horarios_outra(j).hora_fim) AND
                         (SELF.horarios(i).hora_fim > v_horarios_outra(j).hora_inicio) THEN
